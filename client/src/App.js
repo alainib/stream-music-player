@@ -12,7 +12,10 @@ let initOptions = {
   theme: "dark",
   remove: true,
   mode: "full",
-  showLyric: false
+  showLyric: false,
+  preload:true,
+  autoPlay:true
+
 };
 class Player extends Component {
   constructor(props) {
@@ -37,7 +40,8 @@ class Player extends Component {
           musicSrc: Config.static_path + "/" + i + ".mp3",
           musicSrc2: () => {
             return Promise.resolve(Config.static_path + "/" + i + ".mp3");
-          }
+          },
+          fullpath: res[i].fullpath,
         });
       }
       this.setState({ audioLists });
@@ -55,9 +59,9 @@ class Player extends Component {
     console.log("audioLists", this.state.audioLists);
     return (
       <div>
-        <ReactJkMusicPlayer {...options} />,
-        {this.state.data &&
-          this.state.data.map((item, index) => {
+        <ReactJkMusicPlayer {...options} />
+        {this.state.audioLists &&
+          this.state.audioLists.map((item, index) => {
             return (
               <div key={index}>
                 <div
@@ -68,7 +72,7 @@ class Player extends Component {
                     display: "flex"
                   }}
                 >
-                  {index} : {item.filename}
+                  {index} : {item.name}
                 </div>
               </div>
             );
