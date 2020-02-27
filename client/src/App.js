@@ -27,16 +27,16 @@ class Player extends Component {
 
   async loadMusic() {
     let res = await nextMusic();
-    console.log(res);
+
     if (res) {
       let audioLists = [];
       for (let i in res) {
         audioLists.push({
           lyric: "",
           name: res[i].filename,
-          musicSrc2: "/static/" + i + ".mp3",
-          musicSrc: () => {
-            return Promise.resolve("/static/" + i + ".mp3");
+          musicSrc: Config.static_path + "/" + i + ".mp3",
+          musicSrc2: () => {
+            return Promise.resolve(Config.static_path + "/" + i + ".mp3");
           }
         });
       }
