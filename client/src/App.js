@@ -1,24 +1,24 @@
-import React, { Component } from 'react';
-import './App.css';
+import React, { Component } from "react";
+import "./App.css";
 
-import Config from 'Config';
-import { nextMusic } from 'services/music';
+import { Button } from "react-bootstrap";
+import Config from "Config";
+import { nextMusic, deleteTrack } from "services/music";
 
-import ReactJkMusicPlayer from 'react-jinke-music-player';
-import 'react-jinke-music-player/assets/index.css';
-
-//import { _DATA } from './data.js';
+import ReactJkMusicPlayer from "react-jinke-music-player";
+import "react-jinke-music-player/assets/index.css";
 
 var jsmediatags = window.jsmediatags;
 
 let initOptions = {
   audioLists: [],
-  theme: 'dark',
+  theme: "dark",
   remove: true,
-  mode: 'full',
+  mode: "full",
   showLyric: false,
   preload: true,
-  autoPlay: true
+  autoPlay: true,
+  clearPriorAudioLists: true
 };
 class Player extends Component {
   constructor(props) {
@@ -49,28 +49,30 @@ class Player extends Component {
       let audioLists = [];
       for (let i in res) {
         audioLists.push({
-          lyric: '',
+          lyric: "lyric",
           name: res[i].filename,
-          musicSrc: Config.static_path + '/' + i + '.mp3',
-          fullpath: res[i].fullpath
+          musicSrc: Config.static_path + "/" + i + ".mp3",
+          fullpath: res[i].fullPath
         });
       }
-
-      this.readTag(audioLists[0]);
-      // this.getData(_DATA.tags);
-      this.setState({ audioLists });
+      this.readTag(audioLists[0].musicSrc);
+      this.setState({ audioLists, currentIndex: 0 });
     } else {
       this.setState({ networkError: true });
     }
   }
 
   // récupere les bonnes infos et set l'image
-  getData(data) {
-    var base64String = '';
-    for (var i = 0; i < data.picture.data.length; i++) {
-      base64String += String.fromCharCode(data.picture.data[i]);
+  extractMp3InfoFromReadedTag(data) {
+    console.log("extractMp3InfoFromReadedTag", data);
+    let base64 = null;
+    if (data.picture) {
+      let base64String = "";
+      for (let i = 0; i < data.picture.data.length; i++) {
+        base64String += String.fromCharCode(data.picture.data[i]);
+      }
+      base64 = "data:image/jpeg;base64," + window.btoa(base64String);
     }
-    var base64 = 'data:image/jpeg;base64,' + window.btoa(base64String);
     this.setState({
       currentData: {
         title: data.title,
@@ -83,15 +85,38 @@ class Player extends Component {
   }
 
   // lit depuis le mp3tag du fichier
-  readTag = item => {
-    jsmediatags.read(item.musicSrc, {
+  readTag = musicSrc => {
+    jsmediatags.read(musicSrc, {
       onSuccess: data => {
-        this.getData(data.tags);
+        console.log("read tag success", data);
+        this.extractMp3InfoFromReadedTag(data.tags);
       },
       onError: function(error) {
-        console.log(error);
+        console.log("read tag error", error);
       }
     });
+  };
+
+  // call after each audio is play ended
+  onAudioEnded = (currentPlayId, audioLists, audioInfo) => {
+    console.log(currentPlayId, audioLists);
+    if (currentPlayId === audioLists[audioLists.length - 1].id) {
+      this.loadMusic();
+    }
+  };
+
+  onAudioPlayTrackChange = (currentPlayId, audioLists, audioInfo) => {
+    //console.log("onAudioPlayTrackChange", currentPlayId, audioLists, audioInfo);
+    this.readTag(audioInfo.musicSrc);
+    for (let i in audioLists) {
+      if (currentPlayId === audioLists[i].id) {
+        this.setState({ currentIndex: i });
+      }
+    }
+  };
+
+  deleteTrackClick = fullpath => {
+    deleteTrack(fullpath);
   };
 
   render() {
@@ -99,15 +124,30 @@ class Player extends Component {
       ...initOptions,
       audioLists: this.state.audioLists
     };
-
+    console.log(this.state.audioLists);
     const { title, artist, year, genre, picture } = this.state.currentData;
     return (
       <div>
-        <ReactJkMusicPlayer {...options} />
+        {this.state.audioLists && this.state.audioLists.length > 0 && (
+          <ReactJkMusicPlayer
+            {...options}
+            onAudioEnded={this.onAudioEnded}
+            onAudioPlayTrackChange={this.onAudioPlayTrackChange}
+          />
+        )}
         {this.state.audioLists && (
-          <div style={{ display: 'flex', flexDirection: 'row' }}>
+          <div style={{ display: "flex", flexDirection: "row" }}>
             <div>
-              <img width="300px" height="300px" src={picture} alt="Logo" />
+              {title}
+              <br />
+              {artist}
+              <br />
+              {genre}
+              <br /> {year}
+              <br />
+              {picture && (
+                <img width="300px" height="300px" src={picture} alt="Logo" />
+              )}
             </div>
             <div>
               {this.state.audioLists.map((item, index) => {
@@ -115,13 +155,24 @@ class Player extends Component {
                   <div key={index}>
                     <div
                       style={{
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'flex-start',
-                        display: 'flex'
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "flex-start",
+                        display: "flex",
+                        backgroundColor:
+                          this.state.currentIndex == index ? "grey" : "#282c34"
                       }}
                     >
                       {index} : {item.name}
+                      {this.state.currentIndex == index && (
+                        <Button
+                          block
+                          variant="secondary"
+                          onClick={() => this.deleteTrackClick(item.fullpath)}
+                        >
+                          DELETE
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
