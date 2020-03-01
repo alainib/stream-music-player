@@ -3,7 +3,11 @@
 const fse = require("fs-extra");
 const path = require("path");
 let bodyParser = require("body-parser");
-const windows = true;
+
+
+for(let i =0;i <100;i++){
+  console.log(" ");
+}
 
 async function scanDir(dir, fileList = []) {
   const files = await fse.readdir(dir);
@@ -20,12 +24,14 @@ async function scanDir(dir, fileList = []) {
   return fileList;
 }
 
-async function checkDir(dir, fileList = []) {
+async function checkDir(dir,dirname) {
+  const fileList = [];
   const files = await fse.readdir(dir);
   for (const file of files) {
     const stat = await fse.stat(path.join(dir, file));
     fileList.push(path.join(dir, file));
   }
+  console.log(dirname,fileList)
   return fileList;
 }
 
@@ -34,7 +40,7 @@ function getRandomInt(max) {
 }
 
 function extractInfoFromName(fullPath) {
-  let tmp = windows ? fullPath.split("\\") : fullPath.split("/");
+  let tmp = inWindows ? fullPath.split("\\") : fullPath.split("/");
 
   let filename = tmp[tmp.length - 1];
   return { filename, fullPath };
@@ -50,21 +56,34 @@ async function copyEntry(src, dest, newName) {
   try {
     await fse.copy(src, path.join(dest, newName));
     // console.log( "copy of from ---" + src + "--- to --- " + dest + newName + "---" );
+    return true ;
   } catch (err) {
     console.error(err);
+    return false 
   }
-  return true;
+  
 }
 
-let musicSrcPath = windows ? "./music/music" : path.join("music", "music");
-let publicDestPath = windows ? "./public/" : path.join(__dirname, "public");
+const inWindows = false;
+
+if(inWindows){
+  console.log("warning path is set for windows");
+}
+
+let musicSrcPath = inWindows ? "./music/music" : path.join("music", "music");
+let publicDestPath = inWindows ? "./public/" : path.join(__dirname, "public");
+console.log("destination folder is ",publicDestPath)
 
 let _allFiles = null;
 let _allFilesLength = 0;
 
-/*checkDir(path.join(__dirname));
-checkDir(musicSrcPath);
-checkDir(publicDestPath);*/
+ 
+// checkDir(path.join(__dirname) , "dirname");
+// checkDir(musicSrcPath, "musicSrcPath");
+// checkDir(publicDestPath,"publicDestPath");
+
+
+
 
 async function initScan() {
   _allFiles = await scanDir(musicSrcPath);
@@ -112,9 +131,10 @@ app.get("/api/next", async function(req, res) {
       // remove of await
       await copyEntry(entry, publicDestPath, i + ".mp3");
       next.push(fileInfo);
-    } catch (error) {}
-  }
-  console.log("next", next);
+    } catch (error) {
+      console.log(error)
+    }
+  } 
 
   res.json(next);
 });
@@ -122,9 +142,10 @@ app.get("/api/next", async function(req, res) {
 app.post("/api/erasemusic", async function(req, res) {
   console.log("erasemusic", req.body);
 
-  const { fullPath } = req.body;
-  fse.unlinkSync(fullPath);
-  console.log(fullPath);
+  let { fullpath } = req.body;
+  
+  fse.unlinkSync(fullpath);
+  
   res.status(200);
 });
 
