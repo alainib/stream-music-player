@@ -1,20 +1,20 @@
-import React, { Component } from "react";
-import "./App.css";
+import React, { Component } from 'react';
+import './App.css';
 
-import { Button } from "react-bootstrap";
-import Config from "Config";
-import { nextMusic, deleteTrack } from "services/music";
+import { Button } from 'react-bootstrap';
+import Config from 'Config';
+import { nextMusic, deleteTrack } from 'services/music';
 
-import ReactJkMusicPlayer from "react-jinke-music-player";
-import "react-jinke-music-player/assets/index.css";
+import ReactJkMusicPlayer from 'react-jinke-music-player';
+import 'react-jinke-music-player/assets/index.css';
 
 var jsmediatags = window.jsmediatags;
 
 let initOptions = {
   audioLists: [],
-  theme: "dark",
+  theme: 'dark',
   remove: true,
-  mode: "full",
+  mode: 'full',
   showLyric: false,
   preload: true,
   autoPlay: true,
@@ -49,9 +49,9 @@ class Player extends Component {
       let audioLists = [];
       for (let i in res) {
         audioLists.push({
-          lyric: "lyric",
+          lyric: 'lyric',
           name: res[i].filename,
-          musicSrc: Config.static_path + "/" + i + ".mp3",
+          musicSrc: Config.static_path + '/' + i + '.mp3',
           fullpath: res[i].fullPath
         });
       }
@@ -64,14 +64,13 @@ class Player extends Component {
 
   // récupere les bonnes infos et set l'image
   extractMp3InfoFromReadedTag(data) {
-    console.log("extractMp3InfoFromReadedTag", data);
     let base64 = null;
     if (data.picture) {
-      let base64String = "";
+      let base64String = '';
       for (let i = 0; i < data.picture.data.length; i++) {
         base64String += String.fromCharCode(data.picture.data[i]);
       }
-      base64 = "data:image/jpeg;base64," + window.btoa(base64String);
+      base64 = 'data:image/jpeg;base64,' + window.btoa(base64String);
     }
     this.setState({
       currentData: {
@@ -88,28 +87,25 @@ class Player extends Component {
   readTag = musicSrc => {
     jsmediatags.read(musicSrc, {
       onSuccess: data => {
-        console.log("read tag success", data);
         this.extractMp3InfoFromReadedTag(data.tags);
       },
       onError: function(error) {
-        console.log("read tag error", error);
+        console.log('read tag error', error);
       }
     });
   };
 
   // call after each audio is play ended
   onAudioEnded = (currentPlayId, audioLists, audioInfo) => {
-    console.log(currentPlayId, audioLists);
     if (currentPlayId === audioLists[audioLists.length - 1].id) {
       this.loadMusic();
     }
   };
 
-  onAudioPlayTrackChange = (currentPlayId, audioLists, audioInfo) => {
-    //console.log("onAudioPlayTrackChange", currentPlayId, audioLists, audioInfo);
+  onAudioPlay = audioInfo => {
     this.readTag(audioInfo.musicSrc);
-    for (let i in audioLists) {
-      if (currentPlayId === audioLists[i].id) {
+    for (let i in this.state.audioLists) {
+      if (audioInfo.fullpath === this.state.audioLists[i].fullpath) {
         this.setState({ currentIndex: i });
       }
     }
@@ -124,27 +120,33 @@ class Player extends Component {
       ...initOptions,
       audioLists: this.state.audioLists
     };
-    console.log(this.state.audioLists);
-    const { title, artist, year, genre, picture } = this.state.currentData;
-    return (
-      <div>
-        {this.state.audioLists && this.state.audioLists.length > 0 && (
+    if (this.state.audioLists && this.state.audioLists.length > 0) {
+      const { title, artist, year, genre, picture } = this.state.currentData;
+      return (
+        <div>
+          <div
+            style={{
+              fontSize: 40
+            }}
+          >
+            {title}
+          </div>
+          {artist} {genre ? `/ ${genre}` : null} {year ? `/ ${year}` : null}
+          <br />
           <ReactJkMusicPlayer
             {...options}
             onAudioEnded={this.onAudioEnded}
-            onAudioPlayTrackChange={this.onAudioPlayTrackChange}
+            onAudioPlay={this.onAudioPlay}
           />
-        )}
-        {this.state.audioLists && (
-          <div style={{ display: "flex", flexDirection: "row" }}>
-            <div>
-              {title}
-              <br />
-              {artist}
-              <br />
-              {genre}
-              <br /> {year}
-              <br />
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <div style={{ margin: 15 }}>
               {picture && (
                 <img width="300px" height="300px" src={picture} alt="Logo" />
               )}
@@ -155,15 +157,15 @@ class Player extends Component {
                   <div key={index}>
                     <div
                       style={{
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "flex-start",
-                        display: "flex",
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
                         backgroundColor:
-                          this.state.currentIndex == index ? "grey" : "#282c34"
+                          this.state.currentIndex == index ? 'grey' : '#282c34'
                       }}
                     >
-                      {index} : {item.name}
+                      {item.name}
                       {this.state.currentIndex == index && (
                         <Button
                           block
@@ -179,9 +181,11 @@ class Player extends Component {
               })}
             </div>
           </div>
-        )}
-      </div>
-    );
+        </div>
+      );
+    } else {
+      return <div>loading</div>;
+    }
   }
 }
 
