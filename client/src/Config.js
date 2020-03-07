@@ -1,5 +1,6 @@
 const local_api_path = 'localhost:1002';
-const distant_api_path = '88.190.14.12:1002';
+// const distant_api_path = '88.190.14.12:1002';
+const distant_api_path = "82.66.14.12:1002";
 
 const useDistante = true;
 
