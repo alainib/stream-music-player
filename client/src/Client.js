@@ -23,7 +23,7 @@ let initOptions = {
 class Player extends Component {
   constructor(props) {
     super(props);
-
+    this.audioInstance = null;
     this.state = {
       audioLists: [],
       networkError: false,
@@ -42,7 +42,7 @@ class Player extends Component {
     this.loadMusic();
   }
 
-  async loadMusic() {
+  loadMusic = async () => {
     let res = await nextMusic();
 
     if (res) {
@@ -51,20 +51,23 @@ class Player extends Component {
         audioLists.push({
           lyric: "lyric",
           name: res[i].filename,
-          musicSrc: Config.static_path + "/" + res[i].fullpath,
-          fullpath: Config.static_path + "/" + res[i].fullpath
+          musicSrc: Config.static_path + res[i].fullpath,
+          fullpath: Config.static_path + res[i].fullpath
         });
       }
       this.readTag(audioLists[0].musicSrc);
       this.setState({ audioLists, currentIndex: 0 });
+      setTimeout(() => {
+        this.audioInstance.load();
+        console.log("load instance");
+      }, 5000);
     } else {
       this.setState({ networkError: true });
     }
-  }
+  };
 
   // récupere les bonnes infos et set l'image
   extractMp3InfoFromReadedTag(data) {
-    console.log("extractMp3InfoFromReadedTag", data);
     let base64 = null;
     if (data.picture) {
       let base64String = "";
@@ -88,7 +91,6 @@ class Player extends Component {
   readTag = musicSrc => {
     jsmediatags.read(musicSrc, {
       onSuccess: data => {
-        console.log("read tag success", data);
         this.extractMp3InfoFromReadedTag(data.tags);
       },
       onError: function(error) {
@@ -99,7 +101,6 @@ class Player extends Component {
 
   // call after each audio is play ended
   onAudioEnded = (currentPlayId, audioLists, audioInfo) => {
-    console.log(currentPlayId, audioLists);
     if (currentPlayId === audioLists[audioLists.length - 1].id) {
       this.loadMusic();
     }
@@ -123,7 +124,7 @@ class Player extends Component {
       ...initOptions,
       audioLists: this.state.audioLists
     };
-    console.log(this.state.audioLists);
+
     const { title, artist, year, genre, picture } = this.state.currentData;
     return (
       <div>
@@ -132,6 +133,7 @@ class Player extends Component {
             {...options}
             onAudioEnded={this.onAudioEnded}
             onAudioPlay={this.onAudioPlay}
+            getAudioInstance={instance => (this.audioInstance = instance)}
           />
         )}
         {this.state.audioLists && (
@@ -170,7 +172,7 @@ class Player extends Component {
                               : "#282c34"
                         }}
                       >
-                        {index} : {item.name}
+                        {item.name}
                         {this.state.currentIndex == index && (
                           <Button
                             block
