@@ -122,7 +122,10 @@ class Player extends Component {
   render() {
     let options = {
       ...initOptions,
-      audioLists: this.state.audioLists
+      audioLists: this.state.audioLists,
+      showMiniModeCover: false,
+      toggleMode: false,
+      mode: "full"
     };
 
     const { title, artist, year, genre, picture } = this.state.currentData;
@@ -138,24 +141,45 @@ class Player extends Component {
         )}
         {this.state.audioLists && (
           <div>
-            {title}
-            <br />
-            {artist + " / " + genre + " / " + year}
+            <div
+              style={{
+                fontSize: "xx-large",
+                fontFamily: "Snell Roundhand, cursive"
+              }}
+            >
+              {title}
+              <br />
+              {artist} {genre ? " / " + genre : null}{" "}
+              {year ? " / " + year : null}
+            </div>
             <br />
             <div
               style={{
                 display: "flex",
-                flexDirection: "row",
+                flexDirection: "column",
                 justifyContent: "space-around",
                 alignItems: "center"
               }}
             >
-              <div>
-                {picture && (
-                  <img width="375px" height="375px" src={picture} alt="Logo" />
-                )}
-              </div>
-              <div style={{ width: 25 }}></div>
+              {picture && (
+                <img width="400px" height="400px" src={picture} alt="Logo" />
+              )}
+
+              {this.state.audioLists.map((item, index) => {
+                if (this.state.currentIndex == index) {
+                  return (
+                    <Button
+                      block
+                      variant="secondary"
+                      onClick={() => this.deleteTrackClick(item.fullpath)}
+                    >
+                      DELETE
+                    </Button>
+                  );
+                }
+              })}
+
+              {/* <div style={{ width: 25 }}></div>
               <div>
                 {this.state.audioLists.map((item, index) => {
                   return (
@@ -187,6 +211,8 @@ class Player extends Component {
                   );
                 })}
               </div>
+           
+           */}
             </div>
           </div>
         )}

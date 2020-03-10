@@ -100,7 +100,7 @@ app.get("/api/next", async function(req, res) {
     await initScan();
   }
   let next = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 50; i++) {
     try {
       let n = getRandomInt(_allFilesLength);
       let entry = _allFiles[n];
@@ -120,8 +120,11 @@ app.post("/api/erasemusic", async function(req, res) {
 
   let { fullpath } = req.body;
 
-  fse.unlinkSync(fullpath);
+  const pos = fullpath.indexOf("/static") + "/static".length;
 
+  let path = musicSrcPath + fullpath.slice(pos);
+
+  fse.unlinkSync(path);
   res.status(200);
 });
 
