@@ -20,17 +20,17 @@ async function scanDir(dir, fileList = []) {
       }
     }
   }
-
+  // console.log("fileList",fileList);
   return fileList;
 }
 
-async function checkDir(dir, dirname) {
+async function checkDir(dir) {
   const fileList = [];
   const files = await fse.readdir(dir);
   for (const file of files) {
     fileList.push(path.join(dir, file));
   }
-  console.log(dirname, fileList);
+  // console.log("checkDir " + dir, fileList);
   return fileList;
 }
 
@@ -52,15 +52,15 @@ if (inWindows) {
 
 let musicSrcPath = inWindows
   ? "/\\NAS/Multimedia/music"
-  : path.join("music", "music");
+  // : path.join("music", "music"); 
+  : path.join("music");  
 
 let _allFiles = null;
 let _allFilesLength = 0;
 // arborescence avec genre / artist / album
 let threeCatalogue = {};
 
-// checkDir('/' , "dirname");
-checkDir(musicSrcPath, "musicSrcPath");
+checkDir(musicSrcPath);
 
 async function initScan() {
   _allFiles = await scanDir(musicSrcPath);
@@ -104,9 +104,13 @@ app.get("/api/next", async function(req, res) {
     try {
       let n = getRandomInt(_allFilesLength);
       let entry = _allFiles[n];
-
-      let fileInfo = extractInfoFromName(entry);
-      next.push(fileInfo);
+	  if(entry){
+		let fileInfo = extractInfoFromName(entry);
+		next.push(fileInfo);
+	  }else{
+		  console.log(entry);
+	  }
+		  
     } catch (error) {
       console.log(error);
     }
