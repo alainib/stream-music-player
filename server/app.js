@@ -1,5 +1,78 @@
 //https://apiko.com/blog/audio-file-streaming-in-js/
 
+var config = require('./config.js');
+const http = require('http');
+
+const path = require('path');
+var serveStatic = require('serve-static');
+const bodyParser = require('body-parser');
+
+var express = require('express');
+var app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+
+
+
+app.set('port', config.apiPort);
+
+
+app.use(function (req, res, next) {
+  console.log("use access")
+  res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
+  res.header("Access-Control-Allow-Origin", "*"); //config.frontIp
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+})
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+server.listen(config.apiPort, config.apiIp, () => {
+  console.log(`Server running at http://${config.apiIp}:${config.apiPort}/`);
+});
+server.on('error', onError);
+
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof config.apiPort === 'string'
+    ? 'Pipe ' + config.apiPort
+    : 'Port ' + config.apiPort
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+
+var api = require('./api');
+app.use('/', api);
+
+
+
+
+/*
+
 const fse = require("fs-extra");
 const path = require("path");
 let bodyParser = require("body-parser");
@@ -13,7 +86,7 @@ app.use(bodyParser.urlencoded({extended: true})); // to support URL-encoded bodi
 app.use(cors());
 app.options("*", cors());
 
-// middleware qui rajoute le cross origin et log les url
+// middleware qui rajoute le cross origin
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -23,64 +96,24 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.use(express.static(path.join("..", __dirname, "client", "build")));
+// app.use(express.static(path.join("..", __dirname, "client", "build")));
 
 const musicSrcPath = path.join("/Volumes/Multimedia/music");
 
 app.use("/static", express.static(musicSrcPath));
 // app.use("/static", express.static(path.join(__dirname, "public")));
 
-app.get("/api/next", async function (req, res) {
-  /*
-  function getRandomInt(max) {
-    return Math.floor(Math.random() * max) + 1;
-  }
-
-  function extractInfoFromName(fullpath) {
-    let tmp = fullpath.split("/");
-    let filename = tmp[tmp.length - 1];
-    return {filename, fullpath};
-  }
-  let _allFiles = null;
-  let _allFilesLength = 0;
-
-  if (_allFiles == null) {
-    await initScan();
-  }
-  let next = [];
-  for (let i = 0; i < 50; i++) {
-    try {
-      let n = getRandomInt(_allFilesLength);
-      let entry = _allFiles[n];
-      if (entry) {
-        let fileInfo = extractInfoFromName(entry);
-        next.push(fileInfo);
-      } else {
-        console.log(entry);
-      }
-
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  res.json(next);
-  */
+app.get('/api/test', function (req, res) {
+  console.log("test " + req.body);
+  res.status(200).send({test: "ok"});
 });
 
-app.post("/api/erasemusic", async function (req, res) {
-  console.log("erasemusic", req.body);
-
-  let {fullpath} = req.body;
-
-  const pos = fullpath.indexOf("/static") + "/static".length;
-
-  let path = musicSrcPath + fullpath.slice(pos);
-
-  fse.unlinkSync(path);
-  res.status(200);
-});
+var api = require('./api');
+app.use('/', api);
 
 app.listen(1002, function () {
   console.log("Example app listening on port 1002");
 });
+*/
+
+module.exports = app;
