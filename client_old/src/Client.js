@@ -8,6 +8,7 @@ import { nextMusic, deleteTrack } from "services/music";
 import ReactJkMusicPlayer from "react-jinke-music-player";
 import "react-jinke-music-player/assets/index.css";
 
+/*
 var jsmediatags = window.jsmediatags;
 
 let initOptions = {
@@ -178,41 +179,6 @@ class Player extends Component {
                   );
                 }
               })}
-
-              {/* <div style={{ width: 25 }}></div>
-              <div>
-                {this.state.audioLists.map((item, index) => {
-                  return (
-                    <div key={index}>
-                      <div
-                        style={{
-                          flexDirection: "column",
-                          justifyContent: "center",
-                          alignItems: "flex-start",
-                          display: "flex",
-                          backgroundColor:
-                            this.state.currentIndex == index
-                              ? "grey"
-                              : "#282c34"
-                        }}
-                      >
-                        {item.name}
-                        {this.state.currentIndex == index && (
-                          <Button
-                            block
-                            variant="secondary"
-                            onClick={() => this.deleteTrackClick(item.fullpath)}
-                          >
-                            DELETE
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-           
-           */}
             </div>
           </div>
         )}
@@ -232,3 +198,5 @@ function App() {
 }
 
 export default App;
+
+*/

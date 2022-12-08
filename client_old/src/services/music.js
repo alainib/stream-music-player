@@ -1,11 +1,12 @@
-import * as axios from "services/axios";
+import {instance} from "./axios"
 
-export async function nextMusic() {
-  const url = "/next";
+export async function searchMusic() {
+  const url = "/search";
 
   let status, data;
   try {
-    const response = await axios.instance.get(url);
+    const response = await instance.post(url, {});
+    console.log(response)
     status = response.status;
     data = response.data;
   } catch (error) {
@@ -25,7 +26,7 @@ export async function deleteTrack(fullpath) {
   try {
     const response = await axios.instance.post(
       url,
-      { fullpath },
+      {fullpath},
       axios.postConfig
     );
 

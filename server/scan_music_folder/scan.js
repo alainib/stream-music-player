@@ -16,11 +16,11 @@ async function recScanDir(dir, fileList = []) {
       fileList = await recScanDir(_path, fileList);
     else {
       if (filename.includes(".mp3")) {
-        console.log(_path)
+        console.log(".")
         try {
           const metadata = await music_metadata.parseFile(_path);
           const {title, genre, artist, album, year} = metadata?.common;
-          const line = {title, genre, artist, album, year, path: _path, id: _path};
+          const line = {title, genre, artist, album, year, path: _path.replace(musicSrcPath, ""), id: _path.replace(musicSrcPath, "")};
           fileList.push(line);
           await fse.appendFile(outputJSON, JSON.stringify(line) + "\n");
         } catch (error) {

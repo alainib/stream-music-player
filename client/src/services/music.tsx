@@ -1,58 +1,16 @@
-import * as axios from "./axios";
+import { instance, postConfig } from './axios';
 
-
-export async function searchMusic(search = "") {
-  const url = "/listmp3/_search";
-
-  let status, data;
+export async function runQuery({ url = '/api/search', typeOfQuery = 'post', search = '', field = null }) {
+  let status, data, response;
   try {
-    const response = await axios.instance.post(url, {
-      "query": {
-        "bool": {
-          "must": [{
-            "wildcard": {
-              "title.keyword": {
-                "value": search + "*"
-              }
-            }
-          }]
-        }
-      },
-      "_source": {
-        "includes": "*"
-      },
-      "size": 100,
-      "track_total_hits": true,
-      "aggs": {
-        "titre": {
-          "terms": {
-            "size": 50,
-            "field": "titre.keyword_not_normalized"
-          }
-        },
-        "album": {
-          "terms": {
-            "size": 50,
-            "field": "album.keyword_not_normalized"
-          }
-        },
-        "genre": {
-          "terms": {
-            "size": 50,
-            "field": "genre.keyword_not_normalized"
-          }
-        },
-        "artist": {
-          "terms": {
-            "size": 50,
-            "field": "artist.keyword_not_normalized",
-            "order": {
-              "_key": "asc"
-            }
-          }
-        }
-      }
-    });
+    switch (typeOfQuery) {
+      case 'post':
+        response = await instance.post(url, { search, field }, postConfig);
+        break;
+      default:
+        response = await instance.get(url);
+        break;
+    }
 
     status = response.status;
     data = response.data;
@@ -67,15 +25,11 @@ export async function searchMusic(search = "") {
   }
 }
 
-export async function deleteTrack(fullpath="") {
-  const url = "/erasemusic";
+export async function deleteTrack(fullpath = '') {
+  const url = '/erasemusic';
   let status, data;
   try {
-    const response = await axios.instance.post(
-      url,
-      {fullpath},
-      axios.postConfig
-    );
+    const response = await instance.post(url, { fullpath }, postConfig);
 
     status = response.status;
     data = response.data;

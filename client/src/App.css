@@ -36,3 +36,7 @@
     transform: rotate(360deg);
   }
 }
+
+audio::-webkit-media-controls-panel {
+  background-color: white;
+}

@@ -4,7 +4,6 @@ var config = require('./config.js');
 const http = require('http');
 
 const path = require('path');
-var serveStatic = require('serve-static');
 const bodyParser = require('body-parser');
 
 var express = require('express');
@@ -18,7 +17,6 @@ app.set('port', config.apiPort);
 
 
 app.use(function (req, res, next) {
-  console.log("use access")
   res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
   res.header("Access-Control-Allow-Origin", "*"); //config.frontIp
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -64,6 +62,15 @@ function onError(error) {
   }
 }
 
+ 
+
+/**
+ * serve static files like mp3 and jpg 
+ * http://localhost:3001/static3/pop/Dua%20Lipa/genesis.mp3 * 
+ */
+app.use("/static", express.static(config.musicSrcPath));
+
+
 
 var api = require('./api');
 app.use('/', api);
@@ -98,9 +105,7 @@ app.use(function (req, res, next) {
 
 // app.use(express.static(path.join("..", __dirname, "client", "build")));
 
-const musicSrcPath = path.join("/Volumes/Multimedia/music");
 
-app.use("/static", express.static(musicSrcPath));
 // app.use("/static", express.static(path.join(__dirname, "public")));
 
 app.get('/api/test', function (req, res) {

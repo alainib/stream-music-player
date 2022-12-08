@@ -21,12 +21,39 @@ router.get('/api/test', async function (req, res) {
 
 
 router.post('/api/search', async function (req, res) {
-  console.log("post /api/search ", req.body);
   const {search, field} = req.body;
 
   try {
     const response = await searchMusic({search, field});
-    res.status(200).json(response.data.data);
+    res.status(200).json(response.data);
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({message: err});
+  }
+
+});
+
+function cleanFilePath(path = "") {
+  return path.replace(config.musicSrcPath, "");
+}
+
+router.get('/api/getrandommusic', async function (req, res) {
+  try {
+
+    const url = "/listmp3/_search";
+    const response = await instance.post(url, {
+      "size": 15,
+      "query": {"function_score": {"query": {"match_all": {}}, "random_score": {}}}
+    });
+
+    res.status(200).json(response.data?.hits?.hits.map((elem) => ({
+      id: elem._id,
+      ...elem?._source,
+      genre: elem?._source?.genre?.[0],
+      path: cleanFilePath(elem?._source?.path),
+      img: cleanFilePath(elem?._source?.path).replace(".mp3", ".jpg")
+    })))
+
   } catch (err) {
     console.log(err)
     res.status(500).json({message: err});
@@ -36,11 +63,9 @@ router.post('/api/search', async function (req, res) {
 
 
 
-
-
 async function searchMusic({search = "", filterOnField = "title.keyword"}) {
   const url = "/listmp3/_search";
-  console.log("calling api searchMusic", {search, filterOnField})
+  // console.log("calling api searchMusic", {search, filterOnField})
   let wildcard = {}
   if (filterOnField) {
     wildcard[filterOnField] = {
