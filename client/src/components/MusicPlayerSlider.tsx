@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import FastForwardRounded from '@mui/icons-material/FastForwardRounded';
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
+import ShuffleOnIcon from '@mui/icons-material/ShuffleOn';
 
 import LoadingGif from './LoadingGif';
 import Image from './Image';
@@ -41,7 +42,7 @@ const CoverImage = styled('div')({
   alignItems: 'center',
   justifyContent: 'center',
   flexShrink: 0,
-  borderRadius: 24,
+  borderRadius: 16,
   backgroundColor: 'rgba(0,0,0,0.08)',
   '& > img': {
     width: '100%',
@@ -74,7 +75,7 @@ export function MusicPlayerSlider() {
   }, [currentTrackIndex]);
 
   const mainIconColor = theme.palette.mode === 'dark' ? '#fff' : '#000';
-
+  console.log(audioList);
   return (
     <Box sx={{ width: '100%', overflow: 'hidden' }}>
       <Widget>
@@ -164,11 +165,14 @@ export function MusicPlayerSlider() {
       getNextRandomMusic();
     }
   }
+  function handleShuffle(){
+    getNextRandomMusic();
+  }
 
   function renderAudio() {
-    // autoPlay
+    //
     return currentTrack?.path !== '' ? (
-      <audio onEnded={handleOnEnd} controls src={Config.static_path + currentTrack.path} />
+      <audio onEnded={handleOnEnd} autoPlay controls src={Config.static_path + currentTrack.path} />
     ) : (
       <>Audio not available, try next ?</>
     );
@@ -191,12 +195,18 @@ export function MusicPlayerSlider() {
           <div>
             {renderAudio()}
             <Grid container direction="row" justifyContent="space-around" alignItems="center">
-              <Grid item xs={5}>
+              <Grid item xs={4}>
                 <IconButton aria-label="previous song" onClick={() => handlePrevious()}>
                   <FastRewindRounded fontSize="large" htmlColor={mainIconColor} />
                 </IconButton>
               </Grid>
-              <Grid item xs={5}>
+
+              <Grid item xs={4}>
+                <IconButton aria-label="next song" onClick={() => handleShuffle()}>
+                  <ShuffleOnIcon fontSize="large" htmlColor={mainIconColor} />
+                </IconButton>
+              </Grid>
+              <Grid item xs={4}>
                 <IconButton aria-label="next song" onClick={() => handleNext()}>
                   <FastForwardRounded fontSize="large" htmlColor={mainIconColor} />
                 </IconButton>

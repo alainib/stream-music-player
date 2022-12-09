@@ -46,13 +46,15 @@ router.get('/api/getrandommusic', async function (req, res) {
       "query": {"function_score": {"query": {"match_all": {}}, "random_score": {}}}
     });
 
-    res.status(200).json(response.data?.hits?.hits.map((elem) => ({
+    const d = response.data?.hits?.hits.map((elem) => ({
       id: elem._id,
       ...elem?._source,
       genre: elem?._source?.genre?.[0],
       path: cleanFilePath(elem?._source?.path),
       img: cleanFilePath(elem?._source?.path).replace(".mp3", ".jpg")
-    })))
+    }));
+    //console.log(JSON.stringify(d))
+    res.status(200).json(d)
 
   } catch (err) {
     console.log(err)
