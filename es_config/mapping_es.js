@@ -1,7 +1,8 @@
+------------------------- index name -------------------------
 
+listmp3
 
-"settings"
-
+------------------------- settings -------------------------
 
 {
   "number_of_shards": 1,
@@ -18,8 +19,7 @@
   }
 }
 
-
-"mappings"
+------------------------- mappings -------------------------
 
 {
 
@@ -93,13 +93,13 @@
 
 }
  
-
+-------------------------
 Champ title  analysé => recherche avec des query fulltext
 Champ title.keyword pas analysé et normalisé en lowercase sans accent => tri
 Champ title.keyword_not_normalized pas analysé et pas normalisé(brut de pomme) => aggrégations + filtres
 
 
-
+---------------------------------------------------------------------------
 
 GET listmp3 / _search
 {

@@ -1,7 +1,7 @@
 import './App.css';
 import { styled, useTheme } from '@mui/material/styles';
  
-import {MusicPlayerSlider} from "./components/MusicPlayerSlider";
+import {MusicPlayer} from "./components/MusicPlayer";
 
 
 const WallPaper = styled('div')({
@@ -38,7 +38,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <MusicPlayerSlider />
+        <MusicPlayer />
         <WallPaper />
 
       </header>

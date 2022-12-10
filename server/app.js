@@ -2,8 +2,7 @@
 
 var config = require('./config.js');
 const http = require('http');
-
-const path = require('path');
+const path = require("path");
 const bodyParser = require('body-parser');
 
 var express = require('express');
@@ -62,63 +61,16 @@ function onError(error) {
   }
 }
 
- 
+
 
 /**
  * serve static files like mp3 and jpg 
  * http://localhost:3001/static3/pop/Dua%20Lipa/genesis.mp3 * 
  */
-app.use("/static", express.static(config.musicSrcPath));
-
-
-
-var api = require('./api');
-app.use('/', api);
-
-
-
-
-/*
-
-const fse = require("fs-extra");
-const path = require("path");
-let bodyParser = require("body-parser");
-
-const express = require("express");
-const app = express();
-const cors = require("cors");
-app.use(bodyParser.json()); // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({extended: true})); // to support URL-encoded bodies
-
-app.use(cors());
-app.options("*", cors());
-
-// middleware qui rajoute le cross origin
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
-
-// app.use(express.static(path.join("..", __dirname, "client", "build")));
-
-
-// app.use("/static", express.static(path.join(__dirname, "public")));
-
-app.get('/api/test', function (req, res) {
-  console.log("test " + req.body);
-  res.status(200).send({test: "ok"});
-});
+const _stat = path.join(__dirname, config.useStaticDatas ? config.localSrcPath : config.musicSrcPath);
+app.use("/static", express.static(_stat));
 
 var api = require('./api');
 app.use('/', api);
-
-app.listen(1002, function () {
-  console.log("Example app listening on port 1002");
-});
-*/
 
 module.exports = app;

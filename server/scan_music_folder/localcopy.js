@@ -1,44 +1,17 @@
-
+var config = require('../config.js');
 const fse = require("fs-extra");
 const path = require("path");
-const musicSrcPath = path.join("/Volumes/Multimedia/music");
-
-async function recScanDir(dir, fileList = []) {
-  const files = await fse.readdir(dir);
-
-  for (const filename of files) {
-    let _path = path.join(dir, filename);
-    const stat = await fse.stat(_path);
-    if (stat.isDirectory())
-      await recScanDir(_path, fileList);
-    else {
-      if (filename !== "folder.jpg" && filename.toLowerCase().includes("folder") && filename.toLowerCase().includes(".jpg")) {
-        try {
-          console.log('.');
-          fse.rename(_path, extractInfoFromName(_path)?.pathToParentFolder + "/folder.jpg");
-        } catch (error) {
-          console.error(error.message);
-        }
-      }
-    }
-  }
-}
-
-const data = ["/variété francaise/Jean-Jacques Goldman - Very Best Of/fermer les yeux.mp3", "/va/Uk Top 40 Dance Singles august 2014/Red Lights - Tiesto.mp3", "/rock/james blunt/Moon Landing/Face The Sun.mp3", "/va/the no 1 - Funky House 2/Get It On.mp3", "/va/On A Chilltrip/until the rising sun - the gregorians.mp3", "/soul black music/whitney houston/1987-Whitney/love is a contact sport.mp3", "/arabe/rabi3 al assmar/Bent-Al-Akaber.mp3", "/arabe/arabe hits 2019/melhem zein - ba3shaqek kelak.mp3", "/R&B/rihanna/anti/Kiss It Better.mp3", "/arabe/arabe hits 2020/Nancy Ajram - Helm El Banat - Official Lyrics Video   نانسي عجرم - حلم البنات - اغنية.mp3", "/arabe/ragheb alami/Habibi Ya Nasi/moukhtasar ahlami.mp3", "/rock/sting and the police/the very best of 2002/If You Love Somebody Set Them Free.mp3", "/disco & funk/Disco_Classics_top_100/Street music - Bang Gang.mp3", "/arabe/arabe mix 2016/kif na3it - shireen.mp3", "/rap francais/sinik/sang froid/bonhomme.mp3", "/rock/beatles/love/glass onion.mp3", "/pop/bravo hits/52/Run It! - Chris Brown.mp3", "/pop/adele/greatest Hits (2012)/one and only.mp3", "/va/VA Official UK Top 40 - 9-February-2014/XO - Beyonce.mp3", "/va/Uk Top 40 Dance Singles august 2014/The Days - Avicii.mp3", "/arabe/assi al hellani/Sibooni Atkallem.mp3", "/soul black music/craig david/BORN TO DO IT/you know what.mp3", "/rock/Queen/Absolute Greatest/Who Wants To Live Forever.mp3", "/soul black music/tracy chapman/where you live/talk to you.mp3", "/rap et hip hop americain/black eyed peas/monkey Business/my_humps.mp3", "/rap et hip hop americain/chris Brown/graffiti/wait.mp3", "/arabe/arabe hits 2019/promises - calvin harris.mp3", "/pop/sia/Lady Croissant/Breathe Me.mp3", "/rap et hip hop americain/va/Tapemasters Inc. - The Future Of R&B 33-2010/all i want is you - miguel feat. lloyd banks & j. cole.mp3", "/va/Clubstone - Out Of My Life/out of my life (extended mix).mp3", "/rock/R.E.M/Greatest Hits/2JN.mp3", "/pop/Morcheeba/Parts Of The Process (2003)/what new york couples fight about.mp3", "/pop/michael Jackson/2010 - Michael/Hold My Hand (Duet With Akon).mp3", "/va/W9.Hits.2013.Vol.2.3/Beauty and a beat - Justin bieber.mp3", "/va/100_Mega_Summer_Hits_2011/wicked way - waylon.mp3", "/arabe/arabe hits 2020/Nassif Zeytoun - Takke [Official Lyric Video] (2019)   ناصيف زيتون - تكة.mp3", "/R&B/rihanna/good girl gone bad/rehab.mp3", "/va/On A Chilltrip/until the rising sun - the gregorians.mp3", "/rap et hip hop americain/t.i/crime pays/party people (feat. n.e.r.d.) - t.i..mp3", "/rap francais/el matador/parti de rien/fais peter le son.mp3", "/pop/bravo hits/65/you found me - the fray.mp3", "/va/now the hits of summer 2011/dont wanna see your face - the john butler trio.mp3", "/rap francais/Bigflo et Oli/La Vraie Vie/ça va trop vite (feat. busta rhymes).mp3", "/rock/R.E.M/Greatest Hits/The One I Love (Live).mp3", "/rai rnb/dj Kayz - Paris Oran New York 2009/eya eya - ol'kainry feat mohamed lamine.mp3", "/va/German_TOP100_Single_Charts_31/million voices (7 seconds) - thomas d.mp3", "/rap et hip hop americain/fabolous/losos Way/there he go.mp3", "/a_trier/100 Greatest Chilled Pop (2019)/gordon lightfoot - the watchman's gone.mp3", "/rap francais/soprano/Best Of Soprano/À la bien.mp3", "/rap et hip hop americain/the game/the documentary/dreams.mp3", "/pop/Justin Timberlake/The_20.20_Experience/Mirrors.mp3", "/rock/amy Winehouse/back to black (deluxe edition)/valerie.mp3", "/arabe/arabe hits 2019/Major Lazer - Cold Water (Dance Video) ft. Justin Bieber.mp3", "/soul black music/Donna Summer/The Donna Summer Anthology/macarthur park.mp3", "/R&B/rihanna/a girl like me/final goodbye.mp3", "/pop/jain/Zanaka/Makeba.mp3", "/rock/sting and the police/the very best of 2002/Fields of Gold.mp3", "/arabe/najoua karam/bhebak wale3.mp3", "/lounge - chill out/the Lounge Box 1 & 2 (The Ultimate Chill Out Collection) 2008 2009/i can't say goodbye - french affair.mp3", "/va/40 Titres Pour Emballer/the rose - bette midler.mp3", "/rap francais/Orelsan/La fete est finie/san.mp3", "/va/Uk Top 40 Dance Singles august 2014/Born to Rage (USA Version) - Dada Life.mp3", "/arabe/arabe hits 2020/._Marwan Khoury - Kol El Qassayed   مروان خوري - كل القصايد.mp3", "/lounge - chill out/the Lounge Box 1 & 2 (The Ultimate Chill Out Collection) 2008 2009/open up - jay-jay johanson.mp3", "/rap et hip hop americain/eminem/revival - 2018/like home feat alicia keys.mp3", "/pop/sia/this Is Acting/move your body.mp3", "/rap francais/booba/0.9/izi monnaie.mp3", "/rock/james blunt/Moon Landing/Postcards.mp3", "/rap et hip hop americain/black eyed peas/the Beginning/someday.mp3", "/soul black music/aretha franklin/Since You've Been Gone.mp3", "/soul black music/fugees/The_Very_Best_Of-2012/Refugees On The Mic (Remix).mp3", "/R&B/Keri Hilson/in a perfect world/how does it feel.mp3", "/calme/Shania Twain/come on over/that don y impress me much.mp3", "/arabe/arabe hits 2020/._Rouh Fell Lyric Video - Carole Samaha    روح فلّ فيديو مع كلمات - كارول سماحة.mp3", "/va/now_thats_what_i_call_music_70_2008/heartbreaker - will.i.am feat. cheryl cole .mp3", "/rap francais/Bigflo et Oli/La Cour Des Grands (2015)/marco.mp3", "/va/top 100 2015/Crazy - Aerosmith.mp3", "/rap francais/kery james/Tu vois j'rap encore/Le jour où j'arrêterai le rap.mp3", "/pop/michael Jackson/1982 - Thriller [2001 Special Edition]/Voice Over Session from Thriller.mp3", "/rap francais/l algerino/mentalite Pirate/Johnny Hama.mp3", "/dance floor/david guetta/one love/sexy Bitch  Ft. Akon.mp3", "/arabe/george wassouf/Maarafsh.mp3", "/rap francais/rim k/Chef_De_Famille/Chef De Famille.mp3", "/dance floor/Martin Solveig/C'est La Vie/give it to me.mp3", "/arabe/arabe hits 2019/gnash - i hate u, i love u ft. olivia o'brien [music video].mp3", "/rap francais/soprano/puisqu il faut vivre/parle moi.mp3", "/slow/101 Love Songs 2008/and i love you so - don mclean.mp3", "/pop/Ed Sheeran/divide 2017/How Would You Feel (Paean).mp3", "/arabe/va/now That's What I Call Arabic 10/hisham abbas-albi.mp3", "/pop/bravo hits/69/rocket - goldfrapp.mp3", "/va/German_TOP100_Single_Charts_31/raise your glass - pink.mp3", "/va/dance charts 2009/i need you so (aboutblank and klc original radio) - k la cuard.mp3", "/pop/Rebecca Ferguson/Freedom (Deluxe 2013)/My Freedom.mp3", "/rap francais/sniper/graver ds la roche/recette maison.mp3", "/va/N.1.Hits.Novembre.2013/Gorilla - Bruno Mars Feat. R Kelly & Pharrell.mp3", "/R&B/va/R&B Lovesongs 2007/my place - nelly.mp3", "/arabe/assi al hellani/Track10.mp3", "/soul black music/Stevie Wonder/Greatest Hits Collection/shelter in the rain.mp3", "/pop/bravo hits/69/real love - mark medlock.mp3", "/rap et hip hop americain/the game/Purp Patron the Hangover/the hangover.mp3", "/R&B/keyshia cole/point of no return/On Demand (Feat. Wale & August Alsina).mp3", "/va/German_TOP100_Single_Charts_14_05_2012/jar of hearts - christina perri.mp3", "/slow/The.Romantic.Sax-Collection/the wind beneath my wings.mp3", "/R&B/va/Rb Hitz Vol 1/slideshow - iyaz.mp3", "/rock/Florence + The Machine Official Discography/hiding.mp3", "/rock/sting and the police/the very best of 2002/Fragile.mp3", "/rap et hip hop americain/Dr Dre/Compton/It's All On Me (feat. Justus & BJ the Chicago Kid).mp3", "/rock/Queen/Absolute Greatest/We Are The Champions.mp3", "/rap et hip hop americain/jay z/american gangster/no hook.mp3", "/slow/the_essential_love-2cd-2010/this is the night - clay aiken.mp3", "/arabe/arabe mix 2016/mali wa mal al nass - saber al roba3i.mp3", "/va/now_thats_what_i_call_music_70_2008/watch out - alex gaudino feat. shena.mp3", "/rap francais/fonky family/don choa/jungle de béton/redbull.mp3", "/arabe/melhem zein/beykfi othoriny.mp3", "/rap et hip hop americain/black eyed peas/e.n.d/one tride.mp3", "/va/German_TOP100_Single_Charts_14_05_2012/summer paradise - simple plan feat. k'naan.mp3", "/dance floor/Calvin Harris/motion/Summer.mp3", "/arabe/vrac/jamoul - 3ali al dick.mp3", "/arabe/saber El Robaey/share3 Al '3ram/kollan ala laylah.mp3", "/calme/leona lewis/echo/stop crying your heart out.mp3"];
 
 async function runcopy() {
-  for (const element of data) {
+  for (const element of config.staticDatas) {
 
-    let originalPath = path.join(musicSrcPath, element);
-    let destPath = path.join("../public/", element);
+    let originalPath = element.path;
+    let destPath = path.join("../public_music/", element.path);
     console.log(originalPath, destPath);
 
-    fse.copy(originalPath, destPath)
+    fse.copy(originalPath, destPath);
   }
-
-
-
 }
 
-runcopy(musicSrcPath);
+runcopy();
 

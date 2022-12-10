@@ -40,18 +40,3 @@ async function scanFullDirectory(srcPath) {
 }
 
 scanFullDirectory(musicSrcPath);
-
-
-
-/*
-async function checkDir(dir) {
-  const fileList = [];
-  const files = await fse.readdir(dir);
-  for (const filename of files) {
-    fileList.push(path.join(dir, filename));
-  }   
-  return fileList;
-}
-
-checkDir(musicSrcPath);
-*/
