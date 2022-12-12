@@ -67,7 +67,8 @@ function onError(error) {
  * serve static files like mp3 and jpg 
  * http://localhost:3001/static3/pop/Dua%20Lipa/genesis.mp3 * 
  */
-const _stat = path.join(__dirname, config.useStaticDatas ? config.localSrcPath : config.musicSrcPath);
+const _stat = config.useStaticDatas ? path.join(__dirname,  config.localSrcPath) : config.musicSrcPath;
+console.log("static path is " + _stat)
 app.use("/static", express.static(_stat));
 
 var api = require('./api');

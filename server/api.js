@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 const axios = require('axios');
 const config = require('./config.js');
+const {extractInfoFromName} = require('./tools/index.js');
 
 const instance = axios.create({
   baseURL: config.elasticUrl,
@@ -49,13 +50,23 @@ router.get('/api/getrandommusic', async function (req, res) {
         "query": {"function_score": {"query": {"match_all": {}}, "random_score": {}}}
       });
 
-      const d = response.data?.hits?.hits.map((elem) => ({
-        id: elem._id,
-        ...elem?._source,
-        genre: elem?._source?.genre?.[0],
-        path: cleanFilePath(elem?._source?.path),
-        img: cleanFilePath(elem?._source?.path).replace(".mp3", ".jpg")
-      }));
+      const d = response.data?.hits?.hits
+        .filter((elem) => {
+          const {filename} = extractInfoFromName(elem?._source?.path);
+          const test = !filename?.startsWith(".");
+          if (test) {
+            console.log({filename, test})
+          }
+          return test;
+          return !filename?.startsWith(".");
+        })
+        .map((elem) => ({
+          id: elem._id || elem.id,
+          ...elem?._source,
+          genre: elem?._source?.genre?.[0],
+          path: cleanFilePath(elem?._source?.path),
+          img: cleanFilePath(elem?._source?.path).replace(".mp3", ".jpg")
+        }));
       res.status(200).json(d)
 
     } catch (err) {

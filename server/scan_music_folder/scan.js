@@ -15,7 +15,7 @@ async function recScanDir(dir, fileList = []) {
     if (stat.isDirectory())
       fileList = await recScanDir(_path, fileList);
     else {
-      if (filename.includes(".mp3")) {
+      if (!filename.startsWith(".") && filename.includes(".mp3")) {
         console.log(".")
         try {
           const metadata = await music_metadata.parseFile(_path);

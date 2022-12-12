@@ -1,6 +1,8 @@
 
 const fse = require("fs-extra");
 const path = require("path");
+const {extractInfoFromName} = require('./tools/index.js');
+
 const musicSrcPath = path.join("/Volumes/Multimedia/music");
 
 async function recScanDir(dir, fileList = []) {
@@ -33,12 +35,7 @@ async function scanFullDirectory(srcPath) {
 scanFullDirectory(musicSrcPath);
 
 
-function extractInfoFromName(fullpath) {
-  let tmp = fullpath.split("/");
-  let filename = tmp[tmp.length - 1];
-  let pathToParentFolder = fullpath.substring(0, fullpath.lastIndexOf('/'));
-  return {filename, fullpath, pathToParentFolder};
-}
+
 
 /*
 async function checkDir(dir) {

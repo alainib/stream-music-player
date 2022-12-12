@@ -1,4 +1,4 @@
-const useStaticDatas = true;
+const useStaticDatas = false;
 const staticDatas = [
   {
     "id": "49bh9oQBDrmU7CYNwTUK",

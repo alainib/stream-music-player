@@ -6,17 +6,20 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+
 import FastForwardRounded from '@mui/icons-material/FastForwardRounded';
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
 import ShuffleOnIcon from '@mui/icons-material/ShuffleOn';
 
 import LoadingGif from './LoadingGif';
+import PlayList from './PlayList';
+import TitleGender from './TitleGender';
 import Image from './Image';
 import useMediaQueries from '../hooks/useMediaQueries';
 import { runQuery } from '../services/music';
 import Config from '../Config';
-
-type Mp3 = { _id: string; title: string; img: string; path: string; album: string; genre: string };
+import { Mp3 } from '../type';
+import { upperFirstLetter } from '../tools';
 
 const Widget = styled('div')(({ theme }) => ({
   padding: 16,
@@ -56,11 +59,11 @@ export function MusicPlayer() {
 
   const [loading, setLoading] = useState<boolean>(true);
   // current track being played
-  const [currentTrack, setCurrentTrack] = useState<Mp3>({ _id: '', title: '', img: '', path: '', album: '', genre: '' });
+  const [currentTrack, setCurrentTrack] = useState<Mp3>({ id: '', title: '', img: '', path: '', album: '', genre: '' });
   const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(0);
 
   // list of all tracks
-  const [audioList, setAudioList] = useState<Mp3[]>([]);
+  const [list, setList] = useState<Mp3[]>([]);
   // list of aggs
   const [aggs, setAggs] = useState(null);
 
@@ -69,15 +72,17 @@ export function MusicPlayer() {
   }, []);
 
   useEffect(() => {
-    if (audioList?.[currentTrackIndex]) {
-      setCurrentTrack(audioList[currentTrackIndex]);
+    if (list?.[currentTrackIndex]) {
+      setCurrentTrack(list[currentTrackIndex]);
     }
   }, [currentTrackIndex]);
 
   const mainIconColor = theme.palette.mode === 'dark' ? '#fff' : '#000';
-  console.log(audioList);
+  console.log(list);
+
   return (
     <Box sx={{ width: '100%', overflow: 'hidden' }}>
+      <PlayList currentTrack={currentTrack} list={list} onChange={handlePlayListChange} loadMore={handleLoadMore} />
       <Widget>
         {loading ? (
           <LoadingGif />
@@ -88,30 +93,8 @@ export function MusicPlayer() {
                 <Image src={Config.static_path + currentTrack?.img} />
               </CoverImage>
               {renderPlayer()}
-              <Box sx={{ m: 1.5, minWidth: 0, width: '100%' }}>
-                <Tooltip
-                  title={
-                    <div>
-                      {cleanString(currentTrack?.title)} <br />
-                      {`${cleanString(currentTrack?.album)} (${cleanString(currentTrack?.genre)})`}
-                    </div>
-                  }
-                >
-                  <Typography
-                    variant="h4"
-                    color="text.secondary"
-                    fontWeight={500}
-                    sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                  >
-                    {cleanString(currentTrack?.title)}
-                  </Typography>
-                </Tooltip>
-                <Typography variant="h5" noWrap>
-                  {cleanString(currentTrack?.album)}
-                </Typography>
-                <Typography variant="h6" noWrap>
-                  {cleanString(currentTrack?.genre)}
-                </Typography>
+              <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', height: '70px' }}>
+                <TitleGender {...currentTrack} />
               </Box>
             </Box>
           </>
@@ -120,13 +103,20 @@ export function MusicPlayer() {
     </Box>
   );
 
+  function handlePlayListChange(index: number) {
+    if (index !== currentTrackIndex) {
+      setCurrentTrack(list[index]);
+    }
+    return null;
+  }
+
   async function search(s: string) {
     setLoading(true);
     const resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/search' });
     setAggs(resDatas?.aggregations);
-    setAudioList(
+    setList(
       resDatas?.hits?.hits.map((elem: any) => ({
-        id: elem._id,
+        id: elem.id,
         ...elem?._source,
       }))
     );
@@ -136,16 +126,23 @@ export function MusicPlayer() {
   async function initRandomMusic() {
     setLoading(true);
     const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' });
-    setAudioList(res);
+    setList(res);
     setCurrentTrack(res[0]);
     setCurrentTrackIndex(0);
     setLoading(false);
   }
 
-  async function getNextRandomMusic() {
+  async function getNextRandomMusic(setCTI: boolean = false) {
     const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' });
-    setAudioList((list) => [...list, ...res]);
-    setCurrentTrackIndex(currentTrackIndex + 1);
+    setList((list) => [...list, ...res]);
+    if (setCTI) {
+      setCurrentTrackIndex(currentTrackIndex + 1);
+    }
+  }
+
+  function handleLoadMore() {
+    getNextRandomMusic(false);
+    return null;
   }
 
   function handleOnEnd() {
@@ -159,22 +156,22 @@ export function MusicPlayer() {
   }
 
   function handleNext() {
-    if (currentTrackIndex + 1 < audioList.length) {
+    if (currentTrackIndex + 1 < list.length) {
       setCurrentTrackIndex(currentTrackIndex + 1);
     } else {
-      getNextRandomMusic();
+      getNextRandomMusic(true);
     }
   }
-  function handleShuffle(){
-    getNextRandomMusic();
+  function handleShuffle() {
+    getNextRandomMusic(true);
   }
 
   function renderAudio() {
-    //
+    // autoPlay
     return currentTrack?.path !== '' ? (
       <audio onEnded={handleOnEnd} autoPlay controls src={Config.static_path + currentTrack.path} />
     ) : (
-      <>Audio not available, try next ?</>
+      <>Audio file not available, try next ?</>
     );
   }
 
@@ -226,10 +223,5 @@ export function MusicPlayer() {
         )}
       </Box>
     );
-  }
-  function cleanString(str: string) {
-    if (!!str) {
-      return str;
-    } else return '';
   }
 }
