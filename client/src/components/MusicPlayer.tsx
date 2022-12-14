@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
 import { styled, useTheme } from '@mui/material/styles';
-import Tooltip from '@mui/material/Tooltip';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 
 import FastForwardRounded from '@mui/icons-material/FastForwardRounded';
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
-import ShuffleOnIcon from '@mui/icons-material/ShuffleOn';
+
+import ShuffleIcon from '@mui/icons-material/Shuffle';
 
 import LoadingGif from './LoadingGif';
-import PlayList from './PlayList';
+import { PlayListWithModal, PlayList } from './PlayList';
 import TitleGender from './TitleGender';
 import Image from './Image';
 import useMediaQueries from '../hooks/useMediaQueries';
@@ -24,21 +23,24 @@ import { upperFirstLetter } from '../tools';
 const Widget = styled('div')(({ theme }) => ({
   padding: 16,
   borderRadius: 16,
-  minHeight: 200,
-  width: 'min(400px,90%)',
+  minHeight: 'min(400px,92vw)',
+  width: '94%',
   margin: 'auto',
   position: 'relative',
   zIndex: 1,
-  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.4)',
+  /*backgroundColor: 'rgba(69,70,72,0.9)',*/
   backdropFilter: 'blur(40px)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  [theme.breakpoints.down('sm')]: {
+    width: 'min(400px,92vw)',
+  },
 }));
 
 const CoverImage = styled('div')({
-  height: '400px',
-  width: '100%',
+  height: 'min(400px,92vw)',
+  width: 'min(400px,92vw)',
   objectFit: 'cover',
   overflow: 'hidden',
   display: 'flex',
@@ -78,30 +80,44 @@ export function MusicPlayer() {
   }, [currentTrackIndex]);
 
   const mainIconColor = theme.palette.mode === 'dark' ? '#fff' : '#000';
-  console.log(list);
 
-  return (
-    <Box sx={{ width: '100%', overflow: 'hidden' }}>
-      <PlayList currentTrack={currentTrack} list={list} onChange={handlePlayListChange} loadMore={handleLoadMore} />
-      <Widget>
+  if (isMobile) {
+    return (
+      <Box sx={{ width: '100%', overflow: 'hidden' }}>
+        <PlayListWithModal currentTrack={currentTrack} list={list} onChange={handlePlayListChange} loadMore={handleLoadMore} />
+        {renderCurrentPlayer()}
+      </Box>
+    );
+  } else {
+    return (
+      <Box id="desktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
+        <div>{renderCurrentPlayer()}</div>
+        <Box sx={{ paddingLeft:"15px" , width: 'min(85%,1200px)' }}>
+          <PlayList currentTrack={currentTrack} list={list} onChange={handlePlayListChange} loadMore={handleLoadMore} />
+        </Box>
+      </Box>
+    );
+  }
+
+  function renderCurrentPlayer() {
+    return (
+      <Widget id="Widget">
         {loading ? (
           <LoadingGif />
         ) : (
-          <>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
-              <CoverImage>
-                <Image src={Config.static_path + currentTrack?.img} />
-              </CoverImage>
-              {renderPlayer()}
-              <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', height: '70px' }}>
-                <TitleGender {...currentTrack} />
-              </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
+            <CoverImage>
+              <Image src={Config.static_path + currentTrack?.img} />
+            </CoverImage>
+            {renderPlayer()}
+            <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', height: '70px' }}>
+              <TitleGender mp3={currentTrack} twoRows={true} />
             </Box>
-          </>
+          </Box>
         )}
       </Widget>
-    </Box>
-  );
+    );
+  }
 
   function handlePlayListChange(index: number) {
     if (index !== currentTrackIndex) {
@@ -182,42 +198,44 @@ export function MusicPlayer() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          m: '5px',
+          m: '15px 0px',
           backgroundColor: 'white',
-          borderRadius: isMobile ? '20px' : '50px',
-          p: '3px',
+          borderRadius: '20px',
+          width: '100%',
         }}
       >
         {isMobile ? (
-          <div>
-            {renderAudio()}
+          <>
             <Grid container direction="row" justifyContent="space-around" alignItems="center">
+              <Grid item xs={12}>
+                {renderAudio()}
+              </Grid>
               <Grid item xs={4}>
                 <IconButton aria-label="previous song" onClick={() => handlePrevious()}>
-                  <FastRewindRounded fontSize="large" htmlColor={mainIconColor} />
+                  <FastRewindRounded fontSize="medium" htmlColor={mainIconColor} />
                 </IconButton>
               </Grid>
 
               <Grid item xs={4}>
                 <IconButton aria-label="next song" onClick={() => handleShuffle()}>
-                  <ShuffleOnIcon fontSize="large" htmlColor={mainIconColor} />
+                  <ShuffleIcon fontSize="medium" htmlColor={mainIconColor} />
                 </IconButton>
               </Grid>
               <Grid item xs={4}>
                 <IconButton aria-label="next song" onClick={() => handleNext()}>
-                  <FastForwardRounded fontSize="large" htmlColor={mainIconColor} />
+                  <FastForwardRounded fontSize="medium" htmlColor={mainIconColor} />
                 </IconButton>
               </Grid>
             </Grid>
-          </div>
+          </>
         ) : (
           <>
             <IconButton aria-label="previous song" onClick={() => handlePrevious()}>
-              <FastRewindRounded fontSize="large" htmlColor={mainIconColor} />
+              <FastRewindRounded fontSize="medium" htmlColor={mainIconColor} />
             </IconButton>
             {renderAudio()}
             <IconButton aria-label="next song" onClick={() => handleNext()}>
-              <FastForwardRounded fontSize="large" htmlColor={mainIconColor} />
+              <FastForwardRounded fontSize="medium" htmlColor={mainIconColor} />
             </IconButton>
           </>
         )}

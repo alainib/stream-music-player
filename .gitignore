@@ -4,9 +4,8 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-/*/server/public_music/
-/*/elasticdata/
-
+server/public_music/
+es_config/elasticdata/
 
 # Runtime data
 pids

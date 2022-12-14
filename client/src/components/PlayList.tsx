@@ -13,13 +13,16 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
+import Divider from '@mui/material/Divider';
 import Avatar from '@mui/material/Avatar';
 import { Mp3 } from '../type';
 import Config from '../Config';
 import { cleanString } from '../tools';
 import TitleGender from './TitleGender';
+import useMediaQueries from '../hooks/useMediaQueries';
 
-const iconColor = '#85878c';
+const iconColor = '#C8CBCD';
+ 
 
 const FloatingContainer = styled('div')(({ theme }) => ({
   position: 'fixed',
@@ -28,15 +31,25 @@ const FloatingContainer = styled('div')(({ theme }) => ({
   zIndex: 2,
 }));
 
-const PlaylistContainer = styled(Box)(({ theme }) => ({
+const PlaylistFixedContainer = styled(Box)(({ theme }) => ({
   position: 'fixed',
   top: '15px',
   right: '15px',
   zIndex: 2,
-  backgroundColor: 'white',
-  borderRadius: '15px',
-  paddingBottom: '12px',
+  backgroundColor: 'rgba(69,70,72,0.7)',
+  backdropFilter: 'blur(40px)',
+  borderRadius: 16,
+  padding: 10,
+  // width: 'min(380px,92vw)',
 }));
+
+type PlayListWithModalProps = {
+  list: Mp3[];
+  currentTrack: Mp3;
+  onChange: (arg: number) => null;
+  loadMore: () => null;
+  onClose?: () => null;
+};
 
 type PlayListProps = {
   list: Mp3[];
@@ -45,11 +58,12 @@ type PlayListProps = {
   loadMore: () => null;
 };
 
-export default function PlayList({ list, currentTrack, onChange, loadMore }: PlayListProps) {
+export function PlayListWithModal(props: PlayListWithModalProps) {
   const [showPlayList, setShowPlayList] = useState<boolean>(false);
 
   function toggleShowPlayList() {
     setShowPlayList(!showPlayList);
+    return null;
   }
 
   return (
@@ -60,7 +74,7 @@ export default function PlayList({ list, currentTrack, onChange, loadMore }: Pla
         </IconButton>
       </FloatingContainer>
       {showPlayList && (
-        <PlaylistContainer>
+        <PlaylistFixedContainer>
           <Grid container direction="column" justifyContent="flex-start" alignItems="flex-end">
             <Grid item xs>
               <IconButton aria-label="next song" onClick={toggleShowPlayList}>
@@ -68,42 +82,54 @@ export default function PlayList({ list, currentTrack, onChange, loadMore }: Pla
               </IconButton>
             </Grid>
             <Grid item xs>
-              <List
-                id="relative"
-                sx={{
-                  width: '100%',
-                  maxWidth: 360,
-                  bgcolor: 'background.paper',
-                  overflow: 'auto',
-                  position: 'relative',
-                  maxHeight: '80vh',
-                  marginBottom: '12px',
-                }}
-              >
-                {list.map((mp3: Mp3, index: number) => {
-                  return (
-                    <ListItemButton
-                      alignItems="flex-start"
-                      key={mp3.id}
-                      selected={currentTrack?.id === mp3.id}
-                      onClick={() => onChange(index)}
-                      divider={true}
-                    >
-                      <ListItemAvatar>
-                        <Avatar alt="Remy Sharp" src={Config.static_path + mp3?.img} />
-                      </ListItemAvatar>
-                      <ListItemText primary={<TitleGender {...mp3} />} />
-                    </ListItemButton>
-                  );
-                })}
-              </List>
-              <IconButton aria-label="next song" onClick={loadMore}>
-                <PlaylistAddIcon fontSize="large" htmlColor={iconColor} />
-              </IconButton>
+              <PlayList {...props} />
             </Grid>
           </Grid>
-        </PlaylistContainer>
+        </PlaylistFixedContainer>
       )}
+    </>
+  );
+}
+
+export function PlayList({ list, currentTrack, onChange, loadMore }: PlayListProps) {
+  const { isMobile } = useMediaQueries();
+  const style = isMobile
+    ? { maxWidth: 360 }
+    : {
+        zIndex: 1,
+      };
+
+  return (
+    <>
+      <List
+        id="PlayList"
+        sx={{
+          width: '100%',
+          //  bgcolor: 'background.paper',
+          overflow: 'auto',
+          position: 'relative',
+          maxHeight: '80vh',
+          marginBottom: '12px',
+          ...style,
+        }}
+      >
+        {list.map((mp3: Mp3, index: number) => {
+          return (
+            <>
+              <ListItemButton alignItems="flex-start" key={mp3.id} selected={currentTrack?.id === mp3.id} onClick={() => onChange(index)}>
+                <ListItemAvatar>
+                  <Avatar alt={mp3?.title} src={Config.static_path + mp3?.img} />
+                </ListItemAvatar>
+                <ListItemText primary={<TitleGender mp3={mp3} smallText={true} twoRows={isMobile} />} />
+              </ListItemButton>
+              <Divider color={iconColor} key={mp3.id + 'divider'} />
+            </>
+          );
+        })}
+      </List>
+      <IconButton aria-label="next song" onClick={loadMore}>
+        <PlaylistAddIcon fontSize="large" htmlColor={iconColor} />
+      </IconButton>
     </>
   );
 }
