@@ -16,13 +16,11 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Divider from '@mui/material/Divider';
 import Avatar from '@mui/material/Avatar';
 import { Mp3 } from '../type';
-import Config from '../Config';
-import { cleanString } from '../tools';
+import { getFolderImagePath } from '../tools';
 import TitleGender from './TitleGender';
 import useMediaQueries from '../hooks/useMediaQueries';
 
 const iconColor = '#C8CBCD';
- 
 
 const FloatingContainer = styled('div')(({ theme }) => ({
   position: 'fixed',
@@ -118,7 +116,7 @@ export function PlayList({ list, currentTrack, onChange, loadMore }: PlayListPro
             <>
               <ListItemButton alignItems="flex-start" key={mp3.id} selected={currentTrack?.id === mp3.id} onClick={() => onChange(index)}>
                 <ListItemAvatar>
-                  <Avatar alt={mp3?.title} src={Config.static_path + mp3?.img} />
+                  <Avatar alt={mp3?.title} src={getFolderImagePath(mp3?.img, true)} />
                 </ListItemAvatar>
                 <ListItemText primary={<TitleGender mp3={mp3} smallText={true} twoRows={isMobile} />} />
               </ListItemButton>
@@ -127,7 +125,7 @@ export function PlayList({ list, currentTrack, onChange, loadMore }: PlayListPro
           );
         })}
       </List>
-      <IconButton aria-label="next song" onClick={loadMore}>
+      <IconButton aria-label="next song" onClick={loadMore} id="loadMore" sx={{ zIndex: 1 }}>
         <PlaylistAddIcon fontSize="large" htmlColor={iconColor} />
       </IconButton>
     </>

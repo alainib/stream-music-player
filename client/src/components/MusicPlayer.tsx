@@ -24,12 +24,12 @@ const Widget = styled('div')(({ theme }) => ({
   padding: 16,
   borderRadius: 16,
   minHeight: 'min(400px,92vw)',
-  width: '94%',
-  margin: 'auto',
+  width: 'min(400px,92vw)',
+  margin: '10px',
   position: 'relative',
   zIndex: 1,
-  /*backgroundColor: 'rgba(69,70,72,0.9)',*/
-  backdropFilter: 'blur(40px)',
+  backgroundColor: 'rgba(250,250,250,0.1)',
+  //backdropFilter: 'blur(140px)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -92,7 +92,7 @@ export function MusicPlayer() {
     return (
       <Box id="desktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
         <div>{renderCurrentPlayer()}</div>
-        <Box sx={{ paddingLeft:"15px" , width: 'min(85%,1200px)' }}>
+        <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
           <PlayList currentTrack={currentTrack} list={list} onChange={handlePlayListChange} loadMore={handleLoadMore} />
         </Box>
       </Box>
@@ -107,7 +107,7 @@ export function MusicPlayer() {
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
             <CoverImage>
-              <Image src={Config.static_path + currentTrack?.img} />
+              <Image src={currentTrack?.img} />
             </CoverImage>
             {renderPlayer()}
             <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', height: '70px' }}>

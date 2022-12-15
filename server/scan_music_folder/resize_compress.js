@@ -18,20 +18,19 @@ async function callbackFct({filename, path, dir}) {
   try {
     if (filename.startsWith("._AlbumArt") || filename.endsWith("_50.jpg") || filename.endsWith("_400.jpg")) {
       fse.unlink(path);
-    } else if (!filename.toLowerCase().includes("folder") && filename.toLowerCase().includes(".jpg")) {
-      const output = config.musicSrcPath + "/cache/" + createId(path);
+    } else if (filename.toLowerCase() === "folder.jpg") {
 
+      console.log(path.replace(".jpg", "_400.jpg"))
       await sharp(path)
         .jpeg({quality: 70})
         .resize({fit: sharp.fit.contain, width: 400})
-        .toFile(output.replace(".jpg", "_400.jpg"));
+        .toFile(path.replace(".jpg", "_400.jpg"));
 
       await sharp(path)
         .jpeg({quality: 60})
         .resize({fit: sharp.fit.contain, width: 100})
-        .toFile(output.replace(".jpg", "_50.jpg"));
+        .toFile(path.replace(".jpg", "_50.jpg"));
 
-      fse.unlink(path);
     }
   } catch (error) {
     console.log("error from " + path);
