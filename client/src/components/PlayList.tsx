@@ -16,7 +16,7 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Divider from '@mui/material/Divider';
 import Avatar from '@mui/material/Avatar';
 import { Mp3 } from '../type';
-import { getFolderImagePath } from '../tools';
+import { getFolderImagePath, scrollToAnchor } from '../tools';
 import TitleGender from './TitleGender';
 import useMediaQueries from '../hooks/useMediaQueries';
 
@@ -114,18 +114,32 @@ export function PlayList({ list, currentTrack, onChange, loadMore }: PlayListPro
         {list.map((mp3: Mp3, index: number) => {
           return (
             <>
-              <ListItemButton alignItems="flex-start" key={mp3.id} selected={currentTrack?.id === mp3.id} onClick={() => onChange(index)}>
+              <ListItemButton
+                alignItems="flex-start"
+                key={mp3.id + index}
+                id={mp3.id}
+                selected={currentTrack?.id === mp3.id}
+                onClick={() => onChange(index)}
+              >
                 <ListItemAvatar>
                   <Avatar alt={mp3?.title} src={getFolderImagePath(mp3?.img, true)} />
                 </ListItemAvatar>
                 <ListItemText primary={<TitleGender mp3={mp3} smallText={true} twoRows={isMobile} />} />
               </ListItemButton>
-              <Divider color={iconColor} key={mp3.id + 'divider'} />
+              <Divider color={iconColor} key={mp3.id + 'divider' + index} />
             </>
           );
         })}
       </List>
-      <IconButton aria-label="next song" onClick={loadMore} id="loadMore" sx={{ zIndex: 1 }}>
+      <IconButton
+        aria-label="next song"
+        onClick={() => {
+          loadMore();
+          scrollToAnchor(list[list.length - 1].id);
+        }}
+        id="loadMore"
+        sx={{ zIndex: 1 }}
+      >
         <PlaylistAddIcon fontSize="large" htmlColor={iconColor} />
       </IconButton>
     </>

@@ -9,16 +9,15 @@ import FastForwardRounded from '@mui/icons-material/FastForwardRounded';
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
 
 import ShuffleIcon from '@mui/icons-material/Shuffle';
-
 import LoadingGif from './LoadingGif';
 import { PlayListWithModal, PlayList } from './PlayList';
 import TitleGender from './TitleGender';
 import Image from './Image';
 import useMediaQueries from '../hooks/useMediaQueries';
+import useLocalStorage from '../hooks/useLocalStorage';
 import { runQuery } from '../services/music';
 import Config from '../Config';
-import { Mp3 } from '../type';
-import { upperFirstLetter } from '../tools';
+import { Mp3 } from '../type'; 
 
 const Widget = styled('div')(({ theme }) => ({
   padding: 16,
@@ -59,18 +58,25 @@ export function MusicPlayer() {
   const theme = useTheme();
   const { isMobile } = useMediaQueries();
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   // current track being played
-  const [currentTrack, setCurrentTrack] = useState<Mp3>({ id: '', title: '', img: '', path: '', album: '', genre: '' });
-  const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(0);
+  //const [currentTrack, setCurrentTrack] = useState<Mp3>({ id: '', title: '', img: '', path: '', album: '', genre: '' });
+  const [currentTrack, setCurrentTrack] = useLocalStorage('currentTrack', { id: '', title: '', img: '', path: '', album: '', genre: '' });
+
+  //const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(0);
+  const [currentTrackIndex, setCurrentTrackIndex] = useLocalStorage('currentTrackIndex', 0);
 
   // list of all tracks
-  const [list, setList] = useState<Mp3[]>([]);
+  // const [list, setList] = useState<Mp3[]>([]);
+  const [list, setList] = useLocalStorage('mp3list', []);
+
   // list of aggs
   const [aggs, setAggs] = useState(null);
 
   useEffect(() => {
-    initRandomMusic();
+    if (list?.length < 1) {
+      initRandomMusic();
+    }
   }, []);
 
   useEffect(() => {
@@ -122,6 +128,7 @@ export function MusicPlayer() {
   function handlePlayListChange(index: number) {
     if (index !== currentTrackIndex) {
       setCurrentTrack(list[index]);
+      setCurrentTrackIndex(index);
     }
     return null;
   }
@@ -149,8 +156,8 @@ export function MusicPlayer() {
   }
 
   async function getNextRandomMusic(setCTI: boolean = false) {
-    const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' });
-    setList((list) => [...list, ...res]);
+    const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' }); 
+    setList((list: Mp3[]) => [...list, ...res]);
     if (setCTI) {
       setCurrentTrackIndex(currentTrackIndex + 1);
     }
@@ -167,7 +174,7 @@ export function MusicPlayer() {
 
   function handlePrevious() {
     if (currentTrackIndex > 0) {
-      setCurrentTrackIndex((oldIndex) => oldIndex - 1);
+      setCurrentTrackIndex((oldIndex: number) => oldIndex - 1);
     }
   }
 
@@ -204,7 +211,7 @@ export function MusicPlayer() {
           width: '100%',
         }}
       >
-        {isMobile ? (
+        {true || isMobile ? (
           <>
             <Grid container direction="row" justifyContent="space-around" alignItems="center">
               <Grid item xs={12}>
