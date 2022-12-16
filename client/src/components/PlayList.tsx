@@ -17,7 +17,7 @@ import Divider from '@mui/material/Divider';
 import Avatar from '@mui/material/Avatar';
 import { Mp3 } from '../type';
 import { getFolderImagePath, scrollToAnchor } from '../tools';
-import TitleGender from './TitleGender';
+import Mp3Info from './Mp3Info';
 import useMediaQueries from '../hooks/useMediaQueries';
 
 const iconColor = '#C8CBCD';
@@ -126,7 +126,7 @@ export function PlayList({ list, currentTrack, onChange, loadMore }: PlayListPro
                 <ListItemAvatar>
                   <Avatar alt={mp3?.title} src={getFolderImagePath(mp3?.img, true)} />
                 </ListItemAvatar>
-                <ListItemText primary={<TitleGender mp3={mp3} smallText={true} twoRows={isMobile} />} />
+                <ListItemText primary={<Mp3Info mp3={mp3} smallText={true} twoRows={isMobile} />} />
               </ListItemButton>
               <Divider color={dividerColor} key={mp3.id + 'divider' + index} />
             </>

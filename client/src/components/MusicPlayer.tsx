@@ -11,8 +11,9 @@ import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import LoadingGif from './LoadingGif';
 import { PlayListWithModal, PlayList } from './PlayList';
-import TitleGender from './TitleGender';
+import Mp3Info from './Mp3Info';
 import Image from './Image';
+import AudioPlayer from './AudioPlayer';
 import useMediaQueries from '../hooks/useMediaQueries';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { runQuery } from '../services/music';
@@ -60,15 +61,19 @@ export function MusicPlayer() {
 
   const [loading, setLoading] = useState<boolean>(false);
   // current track being played
-  //const [currentTrack, setCurrentTrack] = useState<Mp3>({ id: '', title: '', img: '', path: '', album: '', genre: '' });
-  const [currentTrack, setCurrentTrack] = useLocalStorage('currentTrack', { id: '', title: '', img: '', path: '', album: '', genre: '' });
-
-  //const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(0);
+  const [currentTrack, setCurrentTrack] = useLocalStorage('currentTrack', {
+    id: '',
+    title: '',
+    artist: '',
+    album: '',
+    genre: '',
+    img: '',
+    path: '',
+  });
   const [currentTrackIndex, setCurrentTrackIndex] = useLocalStorage('currentTrackIndex', -1);
-
-  // list of all tracks
-  // const [list, setList] = useState<Mp3[]>([]);
+  // list of all tracks being played curently
   const [list, setList] = useLocalStorage('mp3list', []);
+  const [history, setHistory] = useLocalStorage('history', []);
 
   // list of aggs
   const [aggs, setAggs] = useState(null);
@@ -120,11 +125,11 @@ export function MusicPlayer() {
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
             <CoverImage>
-              <Image src={currentTrack?.img} />
+              <Image src={currentTrack?.path} />
             </CoverImage>
             {renderPlayer()}
             <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', height: '70px' }}>
-              <TitleGender mp3={currentTrack} twoRows={true} />
+              <Mp3Info mp3={currentTrack} twoRows={true} />
             </Box>
           </Box>
         )}
@@ -153,7 +158,7 @@ export function MusicPlayer() {
     setLoading(false);
   }
 
-  async function initRandomMusic() { 
+  async function initRandomMusic() {
     setLoading(true);
     const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' });
     console.log(res);
@@ -206,12 +211,7 @@ export function MusicPlayer() {
   }
 
   function renderAudio() {
-    // autoPlay
-    return currentTrack?.path !== '' ? (
-      <audio onEnded={handleOnEnd} autoPlay controls src={Config.static_path + currentTrack.path} />
-    ) : (
-      <>Audio file not available, try next ?</>
-    );
+    return <AudioPlayer src={currentTrack?.path} handleOnEnd={handleOnEnd} />;
   }
 
   function renderPlayer() {

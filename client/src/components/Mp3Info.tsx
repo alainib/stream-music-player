@@ -5,35 +5,48 @@ import Grid from '@mui/material/Grid';
 import { Mp3 } from '../type';
 import { upperFirstLetter } from '../tools';
 
-type TitleGenderProps = {
-  mp3: Mp3; 
+type Mp3InfoProps = {
+  mp3: Mp3;
   // if true display small text and album+gendre under title. if not all on the same row
   twoRows?: boolean;
   smallText?: boolean;
 };
 
-export default function TitleGender({ mp3, twoRows = false, smallText = false }: TitleGenderProps) {
+export default function Mp3Info({ mp3, twoRows = false, smallText = false }: Mp3InfoProps) {
   const title = upperFirstLetter(mp3?.title);
   const album = upperFirstLetter(mp3?.album);
+  const artist = upperFirstLetter(mp3?.artist);
   const genre = upperFirstLetter(mp3?.genre?.replace('rap francais', 'rap fr'));
 
-  let style = { alignItems: 'flex-start', display: 'flex', color: 'white'  };
-  let styleSub = { color: 'rgb(243, 244, 246)' };
+  let style = { alignItems: 'flex-start', display: 'flex', color: 'white' };
+  let styleSub = {
+    color: 'rgb(243, 244, 246)',
+    maxWidth: '28ch',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+  };
 
   return (
     <Grid container direction="row" justifyContent="space-between" alignItems="center">
-      <Grid item xs={twoRows ? 12 : 5}>
+      <Grid item xs={twoRows ? 12 : 6}>
         {renderTitle()}
       </Grid>
-      <Grid item xs={!twoRows && 4}>
+      <Grid item xs={twoRows ? 12 : 6}>
         {renderAlbum()}
       </Grid>
-      <Grid item xs={!twoRows && 3}>
+      <Grid item xs={!twoRows && 6}>
+        {renderArtist()}
+      </Grid>
+      <Grid item xs={!twoRows && 6}>
         {renderGenre()}
       </Grid>
     </Grid>
   );
- 
+
   function renderTitle() {
     return (
       <Typography
@@ -54,17 +67,22 @@ export default function TitleGender({ mp3, twoRows = false, smallText = false }:
     );
   }
 
+  function renderArtist() {
+    return (
+      <Typography variant="body2" id="fuck" sx={styleSub}>
+        {artist}
+      </Typography>
+    );
+  }
+
   function renderAlbum() {
     return (
-      <Typography
-        variant="body2"
-        id="fuck"
-        sx={{ maxWidth: '28ch', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', ...styleSub }}
-      >
+      <Typography variant="body2" id="fuck" sx={styleSub}>
         {album}
       </Typography>
     );
   }
+
   function renderGenre() {
     return (
       <Typography variant="body2" sx={styleSub}>
