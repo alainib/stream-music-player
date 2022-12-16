@@ -17,7 +17,7 @@ import useMediaQueries from '../hooks/useMediaQueries';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { runQuery } from '../services/music';
 import Config from '../Config';
-import { Mp3 } from '../type'; 
+import { Mp3 } from '../type';
 
 const Widget = styled('div')(({ theme }) => ({
   padding: 16,
@@ -64,7 +64,7 @@ export function MusicPlayer() {
   const [currentTrack, setCurrentTrack] = useLocalStorage('currentTrack', { id: '', title: '', img: '', path: '', album: '', genre: '' });
 
   //const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(0);
-  const [currentTrackIndex, setCurrentTrackIndex] = useLocalStorage('currentTrackIndex', 0);
+  const [currentTrackIndex, setCurrentTrackIndex] = useLocalStorage('currentTrackIndex', -1);
 
   // list of all tracks
   // const [list, setList] = useState<Mp3[]>([]);
@@ -85,12 +85,19 @@ export function MusicPlayer() {
     }
   }, [currentTrackIndex]);
 
+  // to fix side effect of list taking time to get saved in state, so when handleTrackChange is called list still empty
+  useEffect(() => {
+    if (list?.length > 0 && currentTrackIndex == -1) {
+      handleTrackChange(0);
+    }
+  }, [list]);
+
   const mainIconColor = theme.palette.mode === 'dark' ? '#fff' : '#000';
 
   if (isMobile) {
     return (
       <Box sx={{ width: '100%', overflow: 'hidden' }}>
-        <PlayListWithModal currentTrack={currentTrack} list={list} onChange={handlePlayListChange} loadMore={handleLoadMore} />
+        <PlayListWithModal currentTrack={currentTrack} list={list} onChange={handleTrackChange} loadMore={handleLoadMore} />
         {renderCurrentPlayer()}
       </Box>
     );
@@ -99,7 +106,7 @@ export function MusicPlayer() {
       <Box id="desktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
         <div>{renderCurrentPlayer()}</div>
         <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
-          <PlayList currentTrack={currentTrack} list={list} onChange={handlePlayListChange} loadMore={handleLoadMore} />
+          <PlayList currentTrack={currentTrack} list={list} onChange={handleTrackChange} loadMore={handleLoadMore} />
         </Box>
       </Box>
     );
@@ -125,9 +132,9 @@ export function MusicPlayer() {
     );
   }
 
-  function handlePlayListChange(index: number) {
-    if (index !== currentTrackIndex) {
-      setCurrentTrack(list[index]);
+  function handleTrackChange(index: number) {
+    if (index !== currentTrackIndex && list?.[index]) {
+      // don't do this setCurrentTrack(list[index]); useEffect do it to avoid side effect
       setCurrentTrackIndex(index);
     }
     return null;
@@ -146,20 +153,29 @@ export function MusicPlayer() {
     setLoading(false);
   }
 
-  async function initRandomMusic() {
+  async function initRandomMusic() { 
     setLoading(true);
     const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' });
+    console.log(res);
     setList(res);
-    setCurrentTrack(res[0]);
-    setCurrentTrackIndex(0);
+    handleTrackChange(0);
     setLoading(false);
   }
 
-  async function getNextRandomMusic(setCTI: boolean = false) {
-    const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' }); 
-    setList((list: Mp3[]) => [...list, ...res]);
-    if (setCTI) {
-      setCurrentTrackIndex(currentTrackIndex + 1);
+  /**
+   * load new music
+   * @param setCTI  : if true set current track index
+   */
+  async function getNextRandomMusic(setCTI: boolean = false, replaceList: boolean = false) {
+    const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' });
+    if (replaceList) {
+      setList(res);
+      handleTrackChange(0);
+    } else {
+      setList((list: Mp3[]) => [...list, ...res]);
+      if (setCTI) {
+        handleTrackChange(currentTrackIndex + 1);
+      }
     }
   }
 
@@ -174,19 +190,19 @@ export function MusicPlayer() {
 
   function handlePrevious() {
     if (currentTrackIndex > 0) {
-      setCurrentTrackIndex((oldIndex: number) => oldIndex - 1);
+      handleTrackChange(currentTrackIndex - 1);
     }
   }
 
   function handleNext() {
     if (currentTrackIndex + 1 < list.length) {
-      setCurrentTrackIndex(currentTrackIndex + 1);
+      handleTrackChange(currentTrackIndex + 1);
     } else {
       getNextRandomMusic(true);
     }
   }
   function handleShuffle() {
-    getNextRandomMusic(true);
+    getNextRandomMusic(true, true);
   }
 
   function renderAudio() {

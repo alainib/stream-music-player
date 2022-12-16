@@ -21,6 +21,7 @@ import TitleGender from './TitleGender';
 import useMediaQueries from '../hooks/useMediaQueries';
 
 const iconColor = '#C8CBCD';
+const dividerColor = '#838387';
 
 const FloatingContainer = styled('div')(({ theme }) => ({
   position: 'fixed',
@@ -120,13 +121,14 @@ export function PlayList({ list, currentTrack, onChange, loadMore }: PlayListPro
                 id={mp3.id}
                 selected={currentTrack?.id === mp3.id}
                 onClick={() => onChange(index)}
+                sx={{ alignItems: 'center' }}
               >
                 <ListItemAvatar>
                   <Avatar alt={mp3?.title} src={getFolderImagePath(mp3?.img, true)} />
                 </ListItemAvatar>
                 <ListItemText primary={<TitleGender mp3={mp3} smallText={true} twoRows={isMobile} />} />
               </ListItemButton>
-              <Divider color={iconColor} key={mp3.id + 'divider' + index} />
+              <Divider color={dividerColor} key={mp3.id + 'divider' + index} />
             </>
           );
         })}

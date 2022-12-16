@@ -54,11 +54,10 @@ router.get('/api/getrandommusic', async function (req, res) {
         .filter((elem) => {
           const {filename} = extractInfoFromName(elem?._source?.path);
           const test = !filename?.startsWith(".");
-          if (test) {
-            console.log({filename, test})
+          if (!test) {
+            console.log("this filename start with a dot: " + filename)
           }
           return test;
-          return !filename?.startsWith(".");
         })
         .map((elem) => ({
           id: elem._id || elem.id,
