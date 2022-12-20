@@ -20,24 +20,6 @@ router.get('/api/test', async function (req, res) {
   return res.json({test: "get api test ok"});
 });
 
-
-router.post('/api/search', async function (req, res) {
-  const {search, field} = req.body;
-
-  try {
-    const response = await searchMusic({search, field});
-    res.status(200).json(response.data);
-  } catch (err) {
-    console.log(err)
-    res.status(500).json({message: err});
-  }
-
-});
-
-function cleanFilePath(path = "") {
-  return path.replace(config.musicSrcPath, "");
-}
-
 router.get('/api/getrandommusic', async function (req, res) {
   if (config.useStaticDatas) {
     res.status(200).json(config.staticDatas);
@@ -62,9 +44,7 @@ router.get('/api/getrandommusic', async function (req, res) {
         .map((elem) => ({
           id: elem._id || elem.id,
           ...elem?._source,
-          genre: elem?._source?.genre?.[0],
           path: cleanFilePath(elem?._source?.path),
-          img: cleanFilePath(elem?._source?.path).replace(".mp3", ".jpg")
         }));
       res.status(200).json(d)
 
@@ -77,18 +57,56 @@ router.get('/api/getrandommusic', async function (req, res) {
 
 });
 
+router.post('/api/getmusicof', async function (req, res) {
+  const {search, field} = req.body;
 
-
-async function searchMusic({search = "", filterOnField = "title.keyword"}) {
-  const url = "/listmp3/_search";
-  // console.log("calling api searchMusic", {search, filterOnField})
-  let wildcard = {}
-  if (filterOnField) {
-    wildcard[filterOnField] = {
-      "value": search + "*"
-    }
+  try {
+    const response = await searchMusicOf({search, field});
+    res.status(200).json(response.data);
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({message: err});
   }
-  const response = await instance.post(url, {
+
+});
+
+
+async function searchMusicOf({search, field}) {
+  const url = "/listmp3/_search";
+  console.log("calling api searchMusicOf", {search, field})
+
+  if (!!search && !!field) {
+    let match = {}
+    match[field + ".keyword"] = search;
+
+    const response = await instance.post(url, {
+      "query": {
+        "bool": {
+          "must": [{
+            "match": match
+          }
+          ]
+        }
+      },
+      "size": 100
+    });
+
+    return response
+  } else {
+    console.log(`error calling api searchMusicOf with empty args. search :${search} ; field: ${field}`);
+    return []
+  }
+
+}
+
+function cleanFilePath(path = "") {
+  return path.replace(config.musicSrcPath, "");
+}
+
+
+/*
+
+ const response = await instance.post(url, {
     "query": {
       "bool": {
         "must": [{wildcard}]
@@ -130,11 +148,7 @@ async function searchMusic({search = "", filterOnField = "title.keyword"}) {
     }
   });
 
-  return response
-
-}
-
-
+  **/
 /*
 app.get("/api/search", async function (req, res) {
   console.log("search " + req.body);

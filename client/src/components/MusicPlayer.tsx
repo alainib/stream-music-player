@@ -18,12 +18,12 @@ import useMediaQueries from '../hooks/useMediaQueries';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { runQuery } from '../services/music';
 import Config from '../Config';
-import { Mp3 } from '../type';
+import { Mp3, newMp3 } from '../type';
 
 const Widget = styled('div')(({ theme }) => ({
   padding: 16,
   borderRadius: 16,
-  minHeight: 'min(400px,92vw)',
+  minHeight: 'min(680px,92vw)',
   width: 'min(400px,92vw)',
   margin: '10px',
   position: 'relative',
@@ -61,15 +61,7 @@ export function MusicPlayer() {
 
   const [loading, setLoading] = useState<boolean>(false);
   // current track being played
-  const [currentTrack, setCurrentTrack] = useLocalStorage('currentTrack', {
-    id: '',
-    title: '',
-    artist: '',
-    album: '',
-    genre: '',
-    img: '',
-    path: '',
-  });
+  const [currentTrack, setCurrentTrack] = useLocalStorage('currentTrack', newMp3());
   const [currentTrackIndex, setCurrentTrackIndex] = useLocalStorage('currentTrackIndex', -1);
   // list of all tracks being played curently
   const [list, setList] = useLocalStorage('mp3list', []);
@@ -102,7 +94,13 @@ export function MusicPlayer() {
   if (isMobile) {
     return (
       <Box sx={{ width: '100%', overflow: 'hidden' }}>
-        <PlayListWithModal currentTrack={currentTrack} list={list} onChange={handleTrackChange} loadMore={handleLoadMore} />
+        <PlayListWithModal
+          currentTrack={currentTrack}
+          list={list}
+          onChange={handleTrackChange}
+          loadMore={handleLoadMore}
+          onSearch={onSearch}
+        />
         {renderCurrentPlayer()}
       </Box>
     );
@@ -111,7 +109,7 @@ export function MusicPlayer() {
       <Box id="desktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
         <div>{renderCurrentPlayer()}</div>
         <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
-          <PlayList currentTrack={currentTrack} list={list} onChange={handleTrackChange} loadMore={handleLoadMore} />
+          <PlayList currentTrack={currentTrack} list={list} onChange={handleTrackChange} loadMore={handleLoadMore} onSearch={onSearch} />
         </Box>
       </Box>
     );
@@ -129,7 +127,7 @@ export function MusicPlayer() {
             </CoverImage>
             {renderPlayer()}
             <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', height: '70px' }}>
-              <Mp3Info mp3={currentTrack} twoRows={true} />
+              <Mp3Info mp3={currentTrack} compact={false} onSearch={onSearch} />
             </Box>
           </Box>
         )}
@@ -145,9 +143,12 @@ export function MusicPlayer() {
     return null;
   }
 
-  async function search(s: string) {
+  async function onSearch(search: string, field: string) {
+    console.log({ search, field });
     setLoading(true);
-    const resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/search' });
+    const resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getmusicof', search, field });
+    console.log(resDatas);
+
     setAggs(resDatas?.aggregations);
     setList(
       resDatas?.hits?.hits.map((elem: any) => ({
@@ -156,6 +157,8 @@ export function MusicPlayer() {
       }))
     );
     setLoading(false);
+
+    return null;
   }
 
   async function initRandomMusic() {

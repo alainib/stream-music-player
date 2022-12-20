@@ -10,7 +10,7 @@ import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import CloseIcon from '@mui/icons-material/Close';
 
 import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
+import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Divider from '@mui/material/Divider';
@@ -45,6 +45,7 @@ const PlaylistFixedContainer = styled(Box)(({ theme }) => ({
 type PlayListWithModalProps = {
   list: Mp3[];
   currentTrack: Mp3;
+  onSearch: (s: string, type: string) => Promise<null>;
   onChange: (arg: number) => null;
   loadMore: () => null;
   onClose?: () => null;
@@ -53,6 +54,7 @@ type PlayListWithModalProps = {
 type PlayListProps = {
   list: Mp3[];
   currentTrack: Mp3;
+  onSearch: (s: string, type: string) => Promise<null>;
   onChange: (arg: number) => null;
   loadMore: () => null;
 };
@@ -90,7 +92,7 @@ export function PlayListWithModal(props: PlayListWithModalProps) {
   );
 }
 
-export function PlayList({ list, currentTrack, onChange, loadMore }: PlayListProps) {
+export function PlayList({ list, currentTrack, onChange, loadMore, onSearch }: PlayListProps) {
   const { isMobile } = useMediaQueries();
   const style = isMobile
     ? { maxWidth: 360 }
@@ -115,19 +117,20 @@ export function PlayList({ list, currentTrack, onChange, loadMore }: PlayListPro
         {list.map((mp3: Mp3, index: number) => {
           return (
             <>
-              <ListItemButton
+              <ListItem
                 alignItems="flex-start"
                 key={mp3.id + index}
                 id={mp3.id}
                 selected={currentTrack?.id === mp3.id}
-                onClick={() => onChange(index)}
                 sx={{ alignItems: 'center' }}
               >
                 <ListItemAvatar>
-                  <Avatar alt={mp3?.title} src={getFolderImagePath(mp3?.img, true)} />
+                  <IconButton onClick={() => onChange(index)}>
+                    <Avatar alt={mp3?.title} src={getFolderImagePath(mp3?.path, true)} />
+                  </IconButton>
                 </ListItemAvatar>
-                <ListItemText primary={<Mp3Info mp3={mp3} smallText={true} twoRows={isMobile} />} />
-              </ListItemButton>
+                <ListItemText primary={<Mp3Info mp3={mp3} smallText={true} compact={true} onSearch={onSearch} />} />
+              </ListItem>
               <Divider color={dividerColor} key={mp3.id + 'divider' + index} />
             </>
           );

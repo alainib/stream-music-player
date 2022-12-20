@@ -152,39 +152,81 @@ GET listmp3 / _search
 
 
 ---------
-
+GET listmp3/_search
 {
+  "size": 15,
+  "query": {
+    "function_score": {
+      "query": {
+        "match_all": {}
+      },
+      "random_score": {}
+    }
+  }
+}
+
+GET listmp3/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "album.keyword": "sang  froid"
+          }
+        }
+      ]
+    }
+  },
+  "size": 100
+}
+ 
+
+
+
+GET listmp3/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "wildcard": {
+            "artist.keyword": {
+              "value": "Sinik*"
+            }
+          }
+        }
+      ]
+    }
+  },
   "_source": {
     "includes": "*"
   },
-  "size": 100,
+  "size": 10,
   "track_total_hits": true,
   "aggs": {
     "titre": {
       "terms": {
-        "size": 100,
+        "size": 25,
         "field": "titre.keyword_not_normalized"
       }
     },
     "album": {
       "terms": {
-        "size": 100,
+        "size": 25,
         "field": "album.keyword_not_normalized"
       }
     },
     "genre": {
       "terms": {
-        "size": 100,
+        "size": 25,
         "field": "genre.keyword_not_normalized"
       }
     },
     "artist": {
       "terms": {
-        "size": 100,
-        "field": "artist.keyword_not_normalized",
-        "order": {
-          "_key": "asc"
-        }
+        "size": 25,
+        "field": "artist.keyword_not_normalized"
       }
     }
   }

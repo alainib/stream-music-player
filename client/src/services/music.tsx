@@ -1,6 +1,13 @@
 import { instance, postConfig } from './axios';
 
-export async function runQuery({ url = '/api/search', typeOfQuery = 'post', search = '', field = null }) {
+type RunQueryProps = {
+  typeOfQuery: string;
+  url: string;
+  search?: string;
+  field?: string;
+};
+
+export async function runQuery({ url = '/api/search', typeOfQuery = 'post', search = '', field = '' }: RunQueryProps) {
   let status, data, response;
   try {
     switch (typeOfQuery) {
