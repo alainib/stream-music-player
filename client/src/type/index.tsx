@@ -11,3 +11,23 @@ export function newMp3() {
     path: '',
   };
 }
+
+export type BucketsType = {
+  genre: { buckets: BucketType[] };
+  artist: { buckets: BucketType[] };
+  album: { buckets: BucketType[] };
+};
+
+export function newBuckets() {
+  return {
+    genre: { buckets: [] },
+    artist: { buckets: [] },
+    album: { buckets: [] },
+  };
+}
+
+export type BucketType = {
+  key: string;  
+  doc_count: number;
+  path: string;
+};

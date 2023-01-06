@@ -5,7 +5,7 @@ const music_metadata = require('music-metadata');
 const config = require('../config.js');
 const {createId} = require('../tools/index.js');
 
-const outputJSON = "output.json";
+const outputJSON = "output.ndjson";
 
 let index = 0;
 
@@ -50,7 +50,9 @@ async function recScanDir(dir, fileList = []) {
   return fileList;
 }
 
-
+/**
+ * this script scan the config.musicSrcPath path and write all music info into output.ndjson file ( title album artist genre path)
+ */
 async function scanFullDirectory(srcPath) {
   await recScanDir(srcPath);
   console.log("scan finished");

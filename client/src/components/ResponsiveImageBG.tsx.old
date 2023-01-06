@@ -1,0 +1,56 @@
+import React from 'react';
+import { Box } from '@mui/material';
+import { pathToFolderImageFromPath } from '../tools';
+
+function addOpacityToHexaColor(hex: string, alpha: number) {
+  if (hex?.startsWith('#')) {
+    return `${hex}${Math.floor(alpha * 255)
+      .toString(16)
+      .padStart(2, '0')}`;
+  } else {
+    return hex;
+  }
+}
+
+type ResponsiveImageBGProps = {
+  children: any;
+  src: string;
+  color?: string;
+};
+
+/**
+ * Display an image responsivly to parent container
+ *
+ * @param {src}
+ * @param {color} color used for backgroundColor, hexadecimal. optional
+ * @returns
+ * 
+ * usage 
+ * 
+ * 
+ * <Box sx={{width: 150, height: 150}}>
+    <ResponsiveImageBG src={url} />
+   </Box>
+ */
+export default function ResponsiveImageBG({ src, color, children }: ResponsiveImageBGProps) {
+  console.log({
+    src,
+    backgroundImage: `url(${pathToFolderImageFromPath(src)})`,
+  });
+  return (
+    <Box
+      sx={(theme) => ({
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        backgroundPosition: 'center',
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: color ? addOpacityToHexaColor(color, 0.3) : theme.palette.grey['100'],
+        backgroundImage: `url(${pathToFolderImageFromPath(src)})`,
+      })}
+    >
+      {children}
+    </Box>
+  );
+}

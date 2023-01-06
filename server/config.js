@@ -162,9 +162,12 @@ const config = {
   apiPort: 3001,
   elasticUrl: "http://127.0.0.1:9200",
   elasticUserName: 'elastic',
-  elasticPassword: 'sdzezr234dfr',
+  elasticPassword: 'elastic321',
+  elasticIndexUrl : "/listmp3_v2/_search",
   kibanaUrl: "http://localhost:5601/",
+  // path to music in external storage like NAS or server
   musicSrcPath: "/Volumes/Multimedia/music",
+  // path to local music when External storage cannot be reached 
   localSrcPath: "./public_music",
   staticDatas: useStaticDatas ? staticDatas : null,
   useStaticDatas

@@ -5,12 +5,12 @@ const config = require('../config.js');
 /*
 usage 
 
-const {extractInfoFromName} = require('./tools/index.js');
-extractInfoFromName(fullpath)
+const {extractInfoFromPath} = require('./tools/index.js');
+extractInfoFromPath(fullpath)
 */
 
 // extract filename, fullpath and pathToParentFolder from a complete path
-exports.extractInfoFromName = (fullpath) => {
+exports.extractInfoFromPath = (fullpath) => {
 
   let tmp, filename, pathToParentFolder;
   if (!!fullpath) {

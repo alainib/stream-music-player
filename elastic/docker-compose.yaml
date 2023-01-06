@@ -7,7 +7,7 @@ services:
     environment:
       discovery.type: 'single-node'
       xpack.security.enabled: 'true'
-      ELASTIC_PASSWORD: 'sdzezr234dfr'
+      ELASTIC_PASSWORD: 'elastic321'
     volumes:
       - ./elasticdata:/usr/share/elasticsearch/data
   kibana:

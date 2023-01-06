@@ -1,5 +1,5 @@
 const path = require("path");
-const {extractInfoFromName, recScanDir} = require('../tools/index.js');
+const {extractInfoFromPath, recScanDir} = require('../tools/index.js');
 
 const musicSrcPath = path.join("/Volumes/Multimedia/music");
 
@@ -21,9 +21,9 @@ function callbackFct({filename, path, dir}) {
       console.log('.');
       console.log({
         from: path,
-        to: extractInfoFromName(path)?.pathToParentFolder + "/folder.jpg"
+        to: extractInfoFromPath(path)?.pathToParentFolder + "/folder.jpg"
       })
-      //  fse.rename(path, extractInfoFromName(path)?.pathToParentFolder + "/folder.jpg");
+      //  fse.rename(path, extractInfoFromPath(path)?.pathToParentFolder + "/folder.jpg");
     } catch (error) {
       console.error(error.message);
     }

@@ -1,4 +1,3 @@
-import React from 'react';
 import gif from '../assets/loading.gif'
 import {styled} from '@mui/material/styles';
 

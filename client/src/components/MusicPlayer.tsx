@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 import { styled, useTheme } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
+
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 
 import FastForwardRounded from '@mui/icons-material/FastForwardRounded';
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
@@ -11,17 +14,20 @@ import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import LoadingGif from './LoadingGif';
 import { PlayListWithModal, PlayList } from './PlayList';
+import { SearchBucketsWithModal, SearchBuckets } from './SearchBuckets';
 import Mp3Info from './Mp3Info';
 import Image from './Image';
 import AudioPlayer from './AudioPlayer';
 import useMediaQueries from '../hooks/useMediaQueries';
 import useLocalStorage from '../hooks/useLocalStorage';
+import { useModalPlaylistContext } from '../hooks/PlaylistContext';
 import { runQuery } from '../services/music';
 import Config from '../Config';
 import { Mp3, newMp3 } from '../type';
 
 const Widget = styled('div')(({ theme }) => ({
   padding: 16,
+  paddingTop: 0,
   borderRadius: 16,
   minHeight: 'min(680px,92vw)',
   width: 'min(400px,92vw)',
@@ -67,8 +73,9 @@ export function MusicPlayer() {
   const [list, setList] = useLocalStorage('mp3list', []);
   const [history, setHistory] = useLocalStorage('history', []);
 
-  // list of aggs
-  const [aggs, setAggs] = useState(null);
+  const { showModalPlaylist, setModalShowPlaylist } = useModalPlaylistContext();
+  const [showPlaylist, setShowPlaylist] = useLocalStorage('showPlaylist', true);
+  const [showSearchBuckets, setShowSearchBuckets] = useLocalStorage('showSearchBuckets', false);
 
   useEffect(() => {
     if (list?.length < 1) {
@@ -93,7 +100,7 @@ export function MusicPlayer() {
 
   if (isMobile) {
     return (
-      <Box sx={{ width: '100%', overflow: 'hidden' }}>
+      <Box id="MusicPlayerComponent" sx={{ width: '100%', overflow: 'hidden' }}>
         <PlayListWithModal
           currentTrack={currentTrack}
           list={list}
@@ -101,6 +108,7 @@ export function MusicPlayer() {
           loadMore={handleLoadMore}
           onSearch={onSearch}
         />
+        <SearchBucketsWithModal onChange={handleTrackChange} />
         {renderCurrentPlayer()}
       </Box>
     );
@@ -108,8 +116,12 @@ export function MusicPlayer() {
     return (
       <Box id="desktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
         <div>{renderCurrentPlayer()}</div>
+
         <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
-          <PlayList currentTrack={currentTrack} list={list} onChange={handleTrackChange} loadMore={handleLoadMore} onSearch={onSearch} />
+          {showPlaylist && !showSearchBuckets && (
+            <PlayList currentTrack={currentTrack} list={list} onChange={handleTrackChange} loadMore={handleLoadMore} onSearch={onSearch} />
+          )}
+          {showSearchBuckets && !showPlaylist && <SearchBuckets onChange={handleTrackChange} />}
         </Box>
       </Box>
     );
@@ -118,22 +130,55 @@ export function MusicPlayer() {
   function renderCurrentPlayer() {
     return (
       <Widget id="Widget">
-        {loading ? (
-          <LoadingGif />
-        ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
-            <CoverImage>
-              <Image src={currentTrack?.path} />
-            </CoverImage>
-            {renderPlayer()}
-            <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', height: '70px' }}>
-              <Mp3Info mp3={currentTrack} compact={false} onSearch={onSearch} />
-            </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
+          <Grid container direction="row" justifyContent="space-between" alignItems="center">
+            <Grid item>
+              <IconButton aria-label="next song" onClick={handleShowSearchBuckets} id="loadMore" sx={{ zIndex: 1 }}>
+                <ManageSearchIcon fontSize="large" htmlColor={Config.iconColor} />
+              </IconButton>
+            </Grid>
+
+            <Grid item>
+              <IconButton aria-label="next song" onClick={handleShowPlaylist} id="loadMore" sx={{ zIndex: 1 }}>
+                <QueueMusicIcon fontSize="large" htmlColor={Config.iconColor} />
+              </IconButton>
+            </Grid>
+          </Grid>
+          <CoverImage>
+            <Image src={currentTrack?.path} />
+          </CoverImage>
+          {loading ? <LoadingGif /> : renderPlayer()}
+          <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', height: '70px' }}>
+            <Mp3Info mp3={currentTrack} compact={false} onSearch={onSearch} />
           </Box>
-        )}
+        </Box>
       </Widget>
     );
   }
+
+  function handleShowSearchBuckets() {
+    if (isMobile) {
+      setModalShowPlaylist(false);
+    } else {
+      setShowPlaylist(false);
+      setShowSearchBuckets(true);
+    }
+  }
+
+  function handleShowPlaylist() {
+    if (isMobile) {
+      setModalShowPlaylist(true);
+    } else {
+      setShowPlaylist(true);
+      setShowSearchBuckets(false);
+    }
+  }
+
+  /*
+  const { showModalPlaylist, setModalShowPlaylist } =  
+  const [showPlaylist, ] =  
+  const [showSearchBuckets, ] 
+  */
 
   function handleTrackChange(index: number) {
     if (index !== currentTrackIndex && list?.[index]) {
@@ -149,7 +194,7 @@ export function MusicPlayer() {
     const resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getmusicof', search, field });
     console.log(resDatas);
 
-    setAggs(resDatas?.aggregations);
+    // setBuckets(resDatas?.aggregations);
     setList(
       resDatas?.hits?.hits.map((elem: any) => ({
         id: elem.id,
@@ -230,7 +275,7 @@ export function MusicPlayer() {
           width: '100%',
         }}
       >
-        {true || isMobile ? (
+        {isMobile ? (
           <>
             <Grid container direction="row" justifyContent="space-around" alignItems="center">
               <Grid item xs={12}>

@@ -7,8 +7,13 @@ type RunQueryProps = {
   field?: string;
 };
 
-export async function runQuery({ url = '/api/search', typeOfQuery = 'post', search = '', field = '' }: RunQueryProps) {
+export async function runQuery({ url = '', typeOfQuery = 'post', search = '', field = '' }: RunQueryProps) {
   let status, data, response;
+  if (url === '') {
+    console.log("error runQuery, url is null")
+    return false;
+  }
+
   try {
     switch (typeOfQuery) {
       case 'post':

@@ -20,10 +20,10 @@ export function upperFirstLetter(str: string) {
  * @param small
  * @returns
  */
-export function getFolderImagePath(path: string, small: boolean = false) {
-  const fullpath = Config.static_path + path;
-  const filename = small ? '/folder_50.jpg' : '/folder_400.jpg';
-  return fullpath.substring(0, fullpath.lastIndexOf('/')) + filename;
+export function pathToFolderImageFromPath(path: string, small: boolean = false) {
+  const { pathToParentFolder } = extractInfoFromPath(path);
+  const filename = small ? '50.jpg' : '400.jpg';
+  return Config.static_path + '/' + pathToParentFolder + '/folder_' + filename;
 }
 
 smoothscroll.polyfill();
@@ -42,13 +42,46 @@ export function scrollToAnchor(id: string) {
   }
 }
 
-export function extractInfoFromName(fullpath: string) {
-  let filename: string = '';
+// return fullpath, pathToParentFolder & filename from a full path to a file
+export function extractInfoFromPath(fullpath: string) {
+  let filename: string | undefined = '';
   let pathToParentFolder: string = '';
+
   if (!!fullpath) {
     const tmp = fullpath.split('/');
-    filename = tmp[tmp.length - 1];
-    pathToParentFolder = fullpath.substring(0, fullpath.lastIndexOf('/'));
+    tmp.shift();
+    const tmp2 = tmp.map((elem) => encodeURIComponent(elem));
+    filename = tmp2.pop();
+    pathToParentFolder = tmp2.join('/');
   }
-  return { filename, fullpath, pathToParentFolder };
+  return { filename, fullpath: pathToParentFolder + '/' + filename, pathToParentFolder };
+}
+
+// return a random color
+export function randomColor() {
+  const colors = [
+    '#EFC58C',
+    '#008000',
+    '#800080', 
+    '#FF7F50',
+    '#B22222',
+    '#FF69B4', 
+    '#f44336',
+    '#3f51b5',
+    '#009688',
+    '#00bfa5',
+    '#ff9800',
+    '#212121',
+    '#607d8b',
+    '#dd2c00',
+    '#00c853',
+    '#01579b',
+    '#e91e63',
+  ];
+
+  return colors[randMax(colors.length - 1)];
+}
+
+function randMax(max: number) {
+  return Math.floor(Math.random() * (max + 1));
 }

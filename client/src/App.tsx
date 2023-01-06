@@ -1,6 +1,7 @@
 import './App.css';
 import { styled, useTheme } from '@mui/material/styles';
 import { MusicPlayer } from './components/MusicPlayer';
+import { ModalPlaylistContextProvider } from './hooks/PlaylistContext';
 
 const WallPaper = styled('div')({
   position: 'absolute',
@@ -37,7 +38,9 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <MusicPlayer />
+        <ModalPlaylistContextProvider>
+          <MusicPlayer />
+        </ModalPlaylistContextProvider>
         <WallPaper />
       </header>
     </div>

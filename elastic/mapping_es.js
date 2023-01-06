@@ -2,7 +2,7 @@
 
 listmp3
 
-------------------------- settings -------------------------
+------------------------- index settings -------------------------
 
 {
   "number_of_shards": 1,
@@ -22,81 +22,88 @@ listmp3
 ------------------------- mappings -------------------------
 
 {
-
   "title": {
     "type": "text",
-      "analyzer": "standard",
-        "fields": {
+    "analyzer": "standard",
+    "fields": {
       "keyword": {
         "type": "keyword",
-          "ignore_above": 256,
-            "normalizer": "lowercase_no_accent"
+        "ignore_above": 256,
+        "normalizer": "lowercase_no_accent"
       },
       "keyword_not_normalized": {
         "type": "keyword",
-          "ignore_above": 256
+        "ignore_above": 256
       }
     }
   },
   "album": {
     "type": "text",
-      "analyzer": "standard",
-        "fields": {
+    "analyzer": "standard",
+    "fields": {
       "keyword": {
         "type": "keyword",
-          "ignore_above": 256,
-            "normalizer": "lowercase_no_accent"
+        "ignore_above": 256,
+        "normalizer": "lowercase_no_accent"
       },
       "keyword_not_normalized": {
         "type": "keyword",
-          "ignore_above": 256
+        "ignore_above": 256
       }
     }
   },
   "artist": {
     "type": "text",
-      "analyzer": "standard",
-        "fields": {
+    "analyzer": "standard",
+    "fields": {
       "keyword": {
         "type": "keyword",
-          "ignore_above": 256,
-            "normalizer": "lowercase_no_accent"
+        "ignore_above": 256,
+        "normalizer": "lowercase_no_accent"
       },
       "keyword_not_normalized": {
         "type": "keyword",
-          "ignore_above": 256
+        "ignore_above": 256
       }
     }
   },
   "genre": {
     "type": "text",
-      "analyzer": "standard",
-        "fields": {
+    "analyzer": "standard",
+    "fields": {
       "keyword": {
         "type": "keyword",
-          "ignore_above": 256,
-            "normalizer": "lowercase_no_accent"
+        "ignore_above": 256,
+        "normalizer": "lowercase_no_accent"
       },
       "keyword_not_normalized": {
         "type": "keyword",
-          "ignore_above": 256
+        "ignore_above": 256
       }
     }
   },
   "path": {
-    "type": "text"
+    "type": "text",
+    "analyzer": "standard",
+    "fields": {
+      "keyword": {
+        "type": "keyword",
+        "ignore_above": 256,
+        "normalizer": "lowercase_no_accent"
+      }
+    }
   },
 
   "year": {
     "type": "long"
   }
-
 }
+
  
 -------------------------
 Champ title  analysé => recherche avec des query fulltext
 Champ title.keyword pas analysé et normalisé en lowercase sans accent => tri
-Champ title.keyword_not_normalized pas analysé et pas normalisé(brut de pomme) => aggrégations + filtres
+Champ title.keyword_not_normalized pas analysé et pas normalisé (brut de pomme) => aggrégations + filtres
 
 
 ---------------------------------------------------------------------------
@@ -172,7 +179,7 @@ GET listmp3/_search
       "must": [
         {
           "match": {
-            "album.keyword": "sang  froid"
+            "album.keyword": "sang froid"
           }
         }
       ]

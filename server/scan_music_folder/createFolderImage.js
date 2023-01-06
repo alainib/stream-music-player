@@ -13,7 +13,10 @@ async function scanFullDirectory(srcPath) {
 scanFullDirectory(config.musicSrcPath);
 
 
-// rename Folder.jpg to folder.jpg
+/**
+ * rename Folder.jpg to folder.jpg
+ * create jpg vignets for very fast preview 
+ */
 async function callbackFct({filename, path, dir}) {
   try {
     if (filename.startsWith("._AlbumArt")) {

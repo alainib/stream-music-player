@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import Config from '../Config';
-import { getFolderImagePath } from '../tools';
+import { useState, useEffect } from 'react';
+import { pathToFolderImageFromPath } from '../tools';
 import dlgif from '../assets/dl.gif';
 
 type ImageType = {
@@ -21,10 +20,14 @@ export default function Image({ src }: ImageType) {
   return (
     <img
       src={src}
-      onError={(e) => {       
+      style={{
+        width: '100%',
+        height: '100%',
+      }}
+      onError={(e) => {
         const target = e.target as HTMLSourceElement;
-        if (errorsCatched == 0) {
-          target.src = getFolderImagePath(src);
+        if (errorsCatched === 0) {
+          target.src = pathToFolderImageFromPath(src);
         } else {
           target.src = dlgif;
         }
@@ -33,5 +36,3 @@ export default function Image({ src }: ImageType) {
     />
   );
 }
-
-
