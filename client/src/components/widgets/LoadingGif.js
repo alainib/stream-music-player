@@ -1,4 +1,4 @@
-import gif from '../assets/loading.gif'
+import gif from '../../assets/loading.gif'
 import {styled} from '@mui/material/styles';
 
 const LoadingContainer = styled('div')(({theme}) => ({

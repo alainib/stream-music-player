@@ -8,7 +8,7 @@ import Config from '../Config';
 
 type Mp3InfoProps = {
   mp3: Mp3;
-  onSearch: (s: string, type: string) => Promise<null>;
+  onSearch?: (s: string, type: string) => Promise<null>;
   compact?: boolean;
   smallText?: boolean;
 };
@@ -113,7 +113,7 @@ export default function Mp3Info({ mp3, compact = false, smallText = false, onSea
 
   function renderButton(s: string, type: string, italic: boolean = false) {
     return (
-      <ButtonBase onClick={() => onSearch(s, type)}>
+      <ButtonBase onClick={() => !!onSearch && onSearch(s, type)}>
         <Typography variant="body2" sx={styleSub}>
           {italic ? <i>{s}</i> : s}
         </Typography>

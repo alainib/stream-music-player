@@ -23,7 +23,13 @@ async function callbackFct({filename, path, dir}) {
       fse.unlink(path);
     } else if (filename.toLowerCase() === "folder.jpg") {
 
-      console.log(path.replace(".jpg", "_400.jpg"))
+      console.log(path.replace(".jpg", "_100.jpg"))
+      await sharp(path)
+        .jpeg({quality: 70})
+        .resize({fit: sharp.fit.contain, width: 100})
+        .toFile(path.replace(".jpg", "_100.jpg"));
+
+      /*
       await sharp(path)
         .jpeg({quality: 70})
         .resize({fit: sharp.fit.contain, width: 400})
@@ -33,6 +39,7 @@ async function callbackFct({filename, path, dir}) {
         .jpeg({quality: 60})
         .resize({fit: sharp.fit.contain, width: 100})
         .toFile(path.replace(".jpg", "_50.jpg"));
+        */
 
     }
   } catch (error) {

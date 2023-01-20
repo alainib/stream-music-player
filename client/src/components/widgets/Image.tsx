@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { pathToFolderImageFromPath } from '../tools';
-import dlgif from '../assets/dl.gif';
+import { pathToFolderImageFromPath } from '../../tools';
+import dlgif from '../../assets/dl.gif';
 
 type ImageType = {
   src: string;
+  size: string;
 };
 
-export default function Image({ src }: ImageType) {
+export default function Image({ src, size }: ImageType) {
   /*
   if i == 0 use folder_400.jpg 
   if i == 1 use dlgif
@@ -27,7 +28,7 @@ export default function Image({ src }: ImageType) {
       onError={(e) => {
         const target = e.target as HTMLSourceElement;
         if (errorsCatched === 0) {
-          target.src = pathToFolderImageFromPath(src);
+          target.src = pathToFolderImageFromPath(src, size);
         } else {
           target.src = dlgif;
         }

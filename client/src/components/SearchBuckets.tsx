@@ -2,19 +2,22 @@ import { useState, useEffect } from 'react';
 
 import { styled } from '@mui/material/styles';
 
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import HomeIcon from '@mui/icons-material/Home';
 import CloseIcon from '@mui/icons-material/Close';
-/*import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import FilterListIcon from '@mui/icons-material/FilterList';*/
+import { Grid, Box, Button, IconButton, Typography, Breadcrumbs } from '@mui/material';
 
-import { Grid, Box, IconButton } from '@mui/material';
-
-import { Mp3, BucketType, newBuckets } from '../type';
+import { Mp3, newBuckets } from '../type';
 import { runQuery } from '../services/music';
 import Bucket from './Bucket';
+import { PlayListWithQuery } from './PlayList';
+// import SizeSlider from './widgets/SizeSlider';
 import useMediaQueries from '../hooks/useMediaQueries';
 import { useModalSearchBucketsContext } from '../hooks/SearchBucketsContext';
+import { upperFirstLetter } from '../tools';
 import Config from '../Config';
+
+let _windowRatioSize = window.innerWidth < 600 ? 100 : 125;
 
 const SearchBucketsFixedContainer = styled(Box)(({ theme }) => ({
   position: 'fixed',
@@ -29,7 +32,7 @@ const SearchBucketsFixedContainer = styled(Box)(({ theme }) => ({
 }));
 
 type SearchBucketsProps = {
-  onChange: (arg: number) => null;
+  changePlaylist: (list: Mp3[], index: number) => null;
 };
 
 type SearchBucketsWithModalProps = Omit<SearchBucketsProps, 'onClose'> & { onClose?: () => null };
@@ -66,35 +69,71 @@ const desktopStyle = {
   zIndex: 1,
 };
 
-export function SearchBuckets({ onChange }: SearchBucketsProps) {
+const _ROOT = 'racine';
+const _GENRES = 'genre';
+const _ARTISTS = 'artist';
+const _ALBUMS = 'album';
+const _MP3 = 'mp3';
+
+function newFilters() {
+  return {
+    genre: [],
+    artist: [],
+    album: [],
+    mp3: [],
+  };
+}
+
+type FiltersType = {
+  genre: string[];
+  artist: string[];
+  album: string[];
+  mp3: string[];
+};
+
+const classes = {
+  label: {
+    fontSize: Config.fontSizes.medium,
+  },
+  breadcrumbLabel: {
+    height: '25px',
+    color: 'white',
+    textTransform: 'none',
+  },
+};
+
+export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
   const { isMobile } = useMediaQueries();
 
   const [loading, setLoading] = useState<boolean>(false);
+  // size of vignets
+  const [vignetsSize, setVignetsSize] = useState<number>(_windowRatioSize);
   // list of Buckets
   const [buckets, setBuckets] = useState(newBuckets());
+
   /* 
-  depth of browsing, 
-  0 : show all genre
-  1 : show all artist of a genre
-  2 : show all album of an artist
-  3 : show all mp3 of an album
-  4 : show search 
+  level of browsing : 
+  -  genres
+  -  artists (can be filtred by a genre)
+  -  albums (can be filtred by an artist)
+  -  mp3 of an album
+  -  search 
   */
-  const [depth, setDepth] = useState<number>(0);
+  const [level, setLevel] = useState<string>(_GENRES);
+  const [filters, setFilters] = useState<FiltersType>(newFilters);
 
   useEffect(() => {
-    searchBuckets();
-  }, []);
+    searchBuckets(filters);
+  }, [filters]);
 
-  async function searchBuckets(search?: string, field?: string) {
+  async function searchBuckets(filters?: object) {
     if (!loading) {
-      console.log({ search, field });
       setLoading(true);
-      const resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getaggs', search, field });
-
-      console.log(resDatas);
-
-      setBuckets(resDatas);
+      let resDatas;
+      if (level !== _MP3) {
+        resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getaggs', filters });
+        setBuckets(resDatas);
+      }
 
       setLoading(false);
     }
@@ -103,15 +142,97 @@ export function SearchBuckets({ onChange }: SearchBucketsProps) {
 
   return (
     <Box sx={isMobile ? mobileStyle : desktopStyle} id="SearchBucketsComponent">
-      {(depth === 0 || depth === 4) && <Bucket data={buckets?.genre} label={'genre'} onSelect={(label: string) => handleDepth(1, label)} />}
-      {(depth === 1 || depth === 4) && <Bucket data={buckets?.album} label={'album'} onSelect={(label: string) => handleDepth(2, label)} />}
-      {(depth === 2 || depth === 4) && (
-        <Bucket data={buckets?.artist} label={'artist'} onSelect={(label: string) => handleDepth(3, label)} />
-      )}
+      <Box>
+        {renderTopBar()}
+
+        {level === _GENRES && (
+          <Bucket data={buckets?.genre} onSelect={(label: string) => handleSelect(level, label, _ARTISTS)} vignetsSize={vignetsSize} />
+        )}
+        {level === _ARTISTS && (
+          <Bucket data={buckets?.artist} onSelect={(label: string) => handleSelect(level, label, _ALBUMS)} vignetsSize={vignetsSize} />
+        )}
+        {level === _ALBUMS && (
+          <Bucket data={buckets?.album} onSelect={(label: string) => handleSelect(level, label, _MP3)} vignetsSize={vignetsSize} />
+        )}
+        {level === _MP3 && <PlayListWithQuery filters={filters} changePlaylist={changePlaylist} />}
+      </Box>
+      {/*
+        <Box sx={{}}>
+          <SizeSlider size={vignetsSize} handleSize={setVignetsSize} />
+        </Box>
+      */}
     </Box>
   );
 
-  function handleDepth(depth: number, label: string) {
-    console.log('depth', { depth, label });
+  function renderTopBar() {
+    let label = 'mp3';
+    switch (level) {
+      case _ROOT:
+        label = '';
+        break;
+      case _GENRES:
+        label = 'Genres';
+        break;
+      case _ARTISTS:
+        label = 'Artistes';
+        break;
+      case _ALBUMS:
+        label = 'Albums';
+        break;
+    }
+
+    return (
+      <Breadcrumbs sx={{ marginLeft: '25px', marginTop: '25px', color: 'white' }} aria-label="breadcrumb" separator={<NavigateNextIcon />}>
+        <Button variant="text" onClick={() => clearFilter(_ROOT)}>
+          <HomeIcon sx={classes.breadcrumbLabel} fontSize="small" />
+        </Button>
+
+        {[_GENRES, _ARTISTS, _ALBUMS].map((t: string) => {
+          return (
+            //@ts-ignore
+            filters[t]?.length > 0 && (
+              <Button variant="text" onClick={() => clearFilter(t)}>
+                {/*@ts-ignore*/}
+                <Typography sx={classes.breadcrumbLabel}> {upperFirstLetter(filters[t].join(' '))}</Typography>
+              </Button>
+            )
+          );
+        })}
+
+        <Box sx={classes.label}>Tout les {label}</Box>
+      </Breadcrumbs>
+    );
+  }
+
+  function clearFilter(newLevel: string) {
+    switch (newLevel) {
+      case _ROOT:
+        setFilters(newFilters);
+        setLevel(_GENRES);
+        break;
+      case _GENRES:
+        setFilters({ ...filters, [_ARTISTS]: [], [_ALBUMS]: [] });
+        setLevel(_ARTISTS);
+        break;
+      case _ARTISTS:
+        setFilters({ ...filters, [_ALBUMS]: [] });
+        setLevel(_ALBUMS);
+        break;
+      case _ALBUMS:
+        setLevel(_ALBUMS);
+        break;
+    }
+  }
+
+  /***
+   *
+   */
+  function handleSelect(level: string, label: string, nextLevel: string) {
+    setLevel(nextLevel);
+    let nf = { ...filters };
+    // @ts-ignore
+    nf[level] = [...nf[level], label];
+
+    setFilters(nf);
   }
 }

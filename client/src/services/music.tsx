@@ -3,21 +3,21 @@ import { instance, postConfig } from './axios';
 type RunQueryProps = {
   typeOfQuery: string;
   url: string;
-  search?: string;
-  field?: string;
+  showHits?: boolean;
+  filters?: {};
 };
 
-export async function runQuery({ url = '', typeOfQuery = 'post', search = '', field = '' }: RunQueryProps) {
+export async function runQuery({ url = '', typeOfQuery = 'post', filters = {}, showHits = false }: RunQueryProps) {
   let status, data, response;
   if (url === '') {
-    console.log("error runQuery, url is null")
+    console.log('error runQuery, url is null');
     return false;
   }
 
   try {
     switch (typeOfQuery) {
       case 'post':
-        response = await instance.post(url, { search, field }, postConfig);
+        response = await instance.post(url, { filters, showHits }, postConfig);
         break;
       default:
         response = await instance.get(url);

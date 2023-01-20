@@ -31,21 +31,7 @@ router.get('/api/getrandommusic', async function (req, res) {
         "query": {"function_score": {"query": {"match_all": {}}, "random_score": {}}}
       });
 
-      const d = response.data?.hits?.hits
-        .filter((elem) => {
-          const {filename} = extractInfoFromPath(elem?._source?.path);
-          const test = !filename?.startsWith(".");
-          if (!test) {
-            console.log("this filename start with a dot: " + filename)
-          }
-          return test;
-        })
-        .map((elem) => ({
-          id: elem._id || elem.id,
-          ...elem?._source,
-          path: cleanFilePath(elem?._source?.path),
-        }));
-      res.status(200).json(d)
+      res.status(200).json(cleanHits(response.data))
 
     } catch (err) {
       console.log(err)
@@ -55,8 +41,12 @@ router.get('/api/getrandommusic', async function (req, res) {
 
 });
 
+
+
 router.post('/api/getaggs', async function (req, res) {
-  const {search, field} = req.body;
+  const {filters} = req.body;
+  console.log("/api/getaggs", filters)
+
   try {
     // subaggs to get path for image
     const subaggs = {
@@ -67,15 +57,18 @@ router.post('/api/getaggs', async function (req, res) {
         }
       }
     };
+
     const response = await instance.post(config.elasticIndexUrl, {
       "size": 0,
+      query: createQueryFromFilters(filters),
       "aggs": {
         /* "titre": {        "terms": {             "size": 25,           "field": "titre.keyword_not_normalized"          }        },*/
         "album": {
           "terms": {
             "size": 250,
             "field": "album.keyword_not_normalized"
-          }
+          },
+          aggs: subaggs
         },
         "genre": {
           "terms": {
@@ -89,15 +82,16 @@ router.post('/api/getaggs', async function (req, res) {
           "terms": {
             "size": 250,
             "field": "artist.keyword_not_normalized"
-          }
+          },
+          aggs: subaggs
         }
       }
     });
 
     const aggregations = {
-      genre: response.data?.aggregations?.genre?.buckets.map(({key, doc_count, path}) => ({key, doc_count, path: path?.buckets?.[0]?.key})),
-      album: response.data?.aggregations?.album?.buckets,
-      artist: response.data?.aggregations?.artist?.buckets
+      genre: cleanData(response.data?.aggregations?.genre?.buckets),
+      album: cleanData(response.data?.aggregations?.album?.buckets),
+      artist: cleanData(response.data?.aggregations?.artist?.buckets)
     }
 
     res.status(200).json(aggregations)
@@ -108,53 +102,112 @@ router.post('/api/getaggs', async function (req, res) {
     res.status(500).json({message: err});
   }
 
+  function cleanData(buckets) {
+    return buckets.map(({key, doc_count, path}) => ({key, doc_count, path: path?.buckets?.[0]?.key}))
+  }
 });
 
-router.post('/api/getmusicof', async function (req, res) {
-  const {search, field} = req.body;
 
-  try {
-    const response = await _searchMusicOf({search, field});
-    res.status(200).json(response.data);
+
+router.post('/api/getmusicof', async function (req, res) {
+  const {filters} = req.body;
+  console.log("/api/getmusicof", req.body)
+  try {    
+    const response = await instance.post(config.elasticIndexUrl, {
+      "size": 150,
+      query: createQueryFromFilters(filters)
+    });
+    res.status(200).json(cleanHits(response.data))
   } catch (err) {
     console.log(err)
     res.status(500).json({message: err});
   }
 });
 
+function createQueryFromFilters(filters) {
+  /*  aggs must need  :
 
-async function _searchMusicOf({search, field}) {
-
-  console.log("calling api searchMusicOf", {search, field})
-
-  if (!!search && !!field) {
-    let match = {}
-    match[field + ".keyword"] = search;
-
-    const response = await instance.post(config.elasticIndexUrl, {
-      "query": {
-        "bool": {
-          "must": [{
-            "match": match
+  query: {
+    "bool": {
+      "must": [
+        {
+          "bool": {
+            "minimum_should_match": 1,
+            "should": [
+              {"term": {"genre.keyword": "rap americain"}}
+            ]
           }
-          ]
+        },
+        {
+          "bool": {
+            // to do a AND query, minimum_should_match should be equal to the number or term , so 4 her. 
+            // to do a OR query, minimum_should_match should be equal to 1
+            "minimum_should_match": 1,
+            "should": [
+              {"term": {"artist.keyword": "50 cent"}},
+              {"term": {"artist.keyword": "eminem"}}
+            ]
+          }
         }
-      },
-      "size": 100
-    });
+      ]
+    }
+  },
+  */
 
-    return response
-  } else {
-    console.log(`error calling api searchMusicOf with empty args. search :${search} ; field: ${field}`);
-    return []
+
+  let must = [];
+
+  for (const propertyName in filters) {
+
+    if (filters[propertyName].length > 0) {
+      let newShouldForMust = [];
+      for (const value of filters[propertyName]) {
+        newShouldForMust.push({"term": {[propertyName+".keyword"]: value}})
+      }
+      if (newShouldForMust?.length > 0) {
+        must.push({
+          "bool": {
+            "minimum_should_match": /*useAndQuery ? newShouldForMust?.length :*/ 1,
+            "should": newShouldForMust
+          }
+        });
+      }
+
+    }
   }
 
+  const query = {
+    "bool": {
+      "must": must
+    }
+  };
+
+  console.log(JSON.stringify(query, null, 2));
+
+  return query
 }
+
 
 function cleanFilePath(path = "") {
   return path.replace(config.musicSrcPath, "");
 }
 
+function cleanHits(responseData) {
+  return responseData?.hits?.hits
+    .filter((elem) => {
+      const {filename} = extractInfoFromPath(elem?._source?.path);
+      const test = !filename?.startsWith(".");
+      if (!test) {
+        console.log("this filename start with a dot: " + filename)
+      }
+      return test;
+    })
+    .map((elem) => ({
+      id: elem._id || elem.id,
+      ...elem?._source,
+      path: cleanFilePath(elem?._source?.path),
+    }));
+}
 
 
 

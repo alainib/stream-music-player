@@ -12,11 +12,11 @@ import FastForwardRounded from '@mui/icons-material/FastForwardRounded';
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
 
 import ShuffleIcon from '@mui/icons-material/Shuffle';
-import LoadingGif from './LoadingGif';
+import LoadingGif from './widgets/LoadingGif';
 import { PlayListWithModal, PlayList } from './PlayList';
 import { SearchBucketsWithModal, SearchBuckets } from './SearchBuckets';
 import Mp3Info from './Mp3Info';
-import Image from './Image';
+import Image from './widgets/Image';
 import AudioPlayer from './AudioPlayer';
 import useMediaQueries from '../hooks/useMediaQueries';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -87,7 +87,7 @@ export function MusicPlayer() {
     if (list?.[currentTrackIndex]) {
       setCurrentTrack(list[currentTrackIndex]);
     }
-  }, [currentTrackIndex]);
+  }, [list, currentTrackIndex]);
 
   // to fix side effect of list taking time to get saved in state, so when handleTrackChange is called list still empty
   useEffect(() => {
@@ -98,30 +98,38 @@ export function MusicPlayer() {
 
   const mainIconColor = theme.palette.mode === 'dark' ? '#fff' : '#000';
 
+  console.log({list , history})
+  
   if (isMobile) {
     return (
-      <Box id="MusicPlayerComponent" sx={{ width: '100%', overflow: 'hidden' }}>
+      <Box id="MusicPlayerComponentMobile" sx={{ width: '100%', overflow: 'hidden' }}>
         <PlayListWithModal
           currentTrack={currentTrack}
           list={list}
-          onChange={handleTrackChange}
+          onTrackChange={handleTrackChange}
           loadMore={handleLoadMore}
           onSearch={onSearch}
         />
-        <SearchBucketsWithModal onChange={handleTrackChange} />
+        <SearchBucketsWithModal changePlaylist={handleListChange} />
         {renderCurrentPlayer()}
       </Box>
     );
   } else {
     return (
-      <Box id="desktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
+      <Box id="MusicPlayerComponentDesktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
         <div>{renderCurrentPlayer()}</div>
 
         <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
           {showPlaylist && !showSearchBuckets && (
-            <PlayList currentTrack={currentTrack} list={list} onChange={handleTrackChange} loadMore={handleLoadMore} onSearch={onSearch} />
+            <PlayList
+              currentTrack={currentTrack}
+              list={list}
+              onTrackChange={handleTrackChange}
+              loadMore={handleLoadMore}
+              onSearch={onSearch}
+            />
           )}
-          {showSearchBuckets && !showPlaylist && <SearchBuckets onChange={handleTrackChange} />}
+          {showSearchBuckets && !showPlaylist && <SearchBuckets changePlaylist={handleListChange} />}
         </Box>
       </Box>
     );
@@ -145,7 +153,7 @@ export function MusicPlayer() {
             </Grid>
           </Grid>
           <CoverImage>
-            <Image src={currentTrack?.path} />
+            <Image src={currentTrack?.path} size="large" />
           </CoverImage>
           {loading ? <LoadingGif /> : renderPlayer()}
           <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', height: '70px' }}>
@@ -191,16 +199,12 @@ export function MusicPlayer() {
   async function onSearch(search: string, field: string) {
     console.log({ search, field });
     setLoading(true);
-    const resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getmusicof', search, field });
+    const resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getmusicof', filters: { [field]: [search] } });
     console.log(resDatas);
 
-    // setBuckets(resDatas?.aggregations);
-    setList(
-      resDatas?.hits?.hits.map((elem: any) => ({
-        id: elem.id,
-        ...elem?._source,
-      }))
-    );
+    //setList(resDatas?.hits?.hits.map((elem: any) => ({ id: elem.id, ...elem?._source })));
+    setHistory(list);
+    setList(resDatas);
     setLoading(false);
 
     return null;
@@ -234,6 +238,15 @@ export function MusicPlayer() {
 
   function handleLoadMore() {
     getNextRandomMusic(false);
+    return null;
+  }
+
+  // change the playlist when mp3 are choosed from facets search
+  function handleListChange(nlist: Mp3[], index: number) {
+    console.log('handle change list ' + index, nlist);
+    setHistory(list);
+    setList(nlist);
+    handleTrackChange(index);
     return null;
   }
 
