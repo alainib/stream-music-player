@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import { styled, useTheme } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
@@ -20,7 +20,7 @@ import Image from './widgets/Image';
 import AudioPlayer from './AudioPlayer';
 import useMediaQueries from '../hooks/useMediaQueries';
 import useLocalStorage from '../hooks/useLocalStorage';
-import { useModalPlaylistContext } from '../hooks/PlaylistContext';
+import { useModalPlaylistContext } from '../context/PlaylistContext';
 import { runQuery } from '../services/music';
 import Config from '../Config';
 import { Mp3, newMp3 } from '../type';
@@ -98,41 +98,48 @@ export function MusicPlayer() {
 
   const mainIconColor = theme.palette.mode === 'dark' ? '#fff' : '#000';
 
-  console.log({list , history})
-  
-  if (isMobile) {
-    return (
-      <Box id="MusicPlayerComponentMobile" sx={{ width: '100%', overflow: 'hidden' }}>
-        <PlayListWithModal
-          currentTrack={currentTrack}
-          list={list}
-          onTrackChange={handleTrackChange}
-          loadMore={handleLoadMore}
-          onSearch={onSearch}
-        />
-        <SearchBucketsWithModal changePlaylist={handleListChange} />
-        {renderCurrentPlayer()}
-      </Box>
-    );
-  } else {
-    return (
-      <Box id="MusicPlayerComponentDesktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
-        <div>{renderCurrentPlayer()}</div>
+  console.log('MusicPlayerComponent', { list, history });
 
-        <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
-          {showPlaylist && !showSearchBuckets && (
-            <PlayList
-              currentTrack={currentTrack}
-              list={list}
-              onTrackChange={handleTrackChange}
-              loadMore={handleLoadMore}
-              onSearch={onSearch}
-            />
-          )}
-          {showSearchBuckets && !showPlaylist && <SearchBuckets changePlaylist={handleListChange} />}
+  const memoizedRender = useMemo(() => render(), [list, history, currentTrackIndex, currentTrack]);
+
+  return memoizedRender;
+
+  function render() {
+    console.log('render');
+    if (isMobile) {
+      return (
+        <Box id="MusicPlayerComponentMobile" sx={{ width: '100%', overflow: 'hidden' }}>
+          <PlayListWithModal
+            currentTrack={currentTrack}
+            list={list}
+            onTrackChange={handleTrackChange}
+            loadMore={handleLoadMore}
+            onSearch={onSearch}
+          />
+          <SearchBucketsWithModal changePlaylist={handleListChange} />
+          {renderCurrentPlayer()}
         </Box>
-      </Box>
-    );
+      );
+    } else {
+      return (
+        <Box id="MusicPlayerComponentDesktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
+          <div>{renderCurrentPlayer()}</div>
+
+          <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
+            {showPlaylist && !showSearchBuckets && (
+              <PlayList
+                currentTrack={currentTrack}
+                list={list}
+                onTrackChange={handleTrackChange}
+                loadMore={handleLoadMore}
+                onSearch={onSearch}
+              />
+            )}
+            {showSearchBuckets && !showPlaylist && <SearchBuckets changePlaylist={handleListChange} />}
+          </Box>
+        </Box>
+      );
+    }
   }
 
   function renderCurrentPlayer() {

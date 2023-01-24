@@ -1,7 +1,7 @@
 import './App.css';
 import { styled, useTheme } from '@mui/material/styles';
 import { MusicPlayer } from './components/MusicPlayer';
-import { ModalPlaylistContextProvider } from './hooks/PlaylistContext';
+import { ModalPlaylistContextProvider } from './context/PlaylistContext';
 
 const WallPaper = styled('div')({
   position: 'absolute',

@@ -138,3 +138,8 @@ export function randomColor() {
 function randMax(max: number) {
   return Math.floor(Math.random() * (max + 1));
 }
+
+
+export function clj(props:any){
+  console.log(JSON.stringify(props,null,2));
+}

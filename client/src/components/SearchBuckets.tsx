@@ -13,11 +13,13 @@ import Bucket from './Bucket';
 import { PlayListWithQuery } from './PlayList';
 // import SizeSlider from './widgets/SizeSlider';
 import useMediaQueries from '../hooks/useMediaQueries';
-import { useModalSearchBucketsContext } from '../hooks/SearchBucketsContext';
-import { upperFirstLetter } from '../tools';
+import useDebounce from '../hooks/useDebounce';
+import { useModalSearchBucketsContext } from '../context/SearchBucketsContext';
+import { upperFirstLetter ,clj} from '../tools';
 import Config from '../Config';
 
-let _windowRatioSize = window.innerWidth < 600 ? 100 : 125;
+const _windowRatioSize = window.innerWidth < 600 ? 100 : 125;
+const _DEBOUNCETIMEOUT = 1000;
 
 const SearchBucketsFixedContainer = styled(Box)(({ theme }) => ({
   position: 'fixed',
@@ -92,9 +94,6 @@ type FiltersType = {
 };
 
 const classes = {
-  label: {
-    fontSize: Config.fontSizes.medium,
-  },
   breadcrumbLabel: {
     height: '25px',
     color: 'white',
@@ -120,18 +119,30 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
   -  search 
   */
   const [level, setLevel] = useState<string>(_GENRES);
+  /**
+   * use filters for write, use debouncedFilters for reading and query
+   * filters are set from different functions, this change are copied to debouncedFilters only 1s, so you can add multiple genre for example and doing only one query
+   */
   const [filters, setFilters] = useState<FiltersType>(newFilters);
+  const [debouncedFilters, setDebouncedFilters] = useState<FiltersType>(newFilters);
+
+  // set filters on each aggs change
+  const debouncedFiltersTmp = useDebounce(filters, _DEBOUNCETIMEOUT);
+  console.log(debouncedFiltersTmp)
+  useEffect(() => {
+    setDebouncedFilters(debouncedFiltersTmp);
+  }, [debouncedFiltersTmp]);
 
   useEffect(() => {
-    searchBuckets(filters);
-  }, [filters]);
+    searchBuckets();
+  }, [debouncedFilters]);
 
-  async function searchBuckets(filters?: object) {
+  async function searchBuckets() {
     if (!loading) {
       setLoading(true);
       let resDatas;
       if (level !== _MP3) {
-        resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getaggs', filters });
+        resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getaggs', filters: debouncedFilters });
         setBuckets(resDatas);
       }
 
@@ -139,6 +150,8 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
     }
     return null;
   }
+
+  clj({debouncedFilters, level});
 
   return (
     <Box sx={isMobile ? mobileStyle : desktopStyle} id="SearchBucketsComponent">
@@ -154,7 +167,7 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
         {level === _ALBUMS && (
           <Bucket data={buckets?.album} onSelect={(label: string) => handleSelect(level, label, _MP3)} vignetsSize={vignetsSize} />
         )}
-        {level === _MP3 && <PlayListWithQuery filters={filters} changePlaylist={changePlaylist} />}
+        {level === _MP3 && <PlayListWithQuery filters={debouncedFilters} changePlaylist={changePlaylist} />}
       </Box>
       {/*
         <Box sx={{}}>
@@ -190,16 +203,18 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
         {[_GENRES, _ARTISTS, _ALBUMS].map((t: string) => {
           return (
             //@ts-ignore
-            filters[t]?.length > 0 && (
-              <Button variant="text" onClick={() => clearFilter(t)}>
+            debouncedFilters[t]?.length > 0 && (
+              <Button key={t} variant="text" onClick={() => clearFilter(t)}>
                 {/*@ts-ignore*/}
-                <Typography sx={classes.breadcrumbLabel}> {upperFirstLetter(filters[t].join(' '))}</Typography>
+                <Typography sx={classes.breadcrumbLabel}> {upperFirstLetter(debouncedFilters[t].join(', '))}</Typography>
               </Button>
             )
           );
         })}
 
-        <Box sx={classes.label}>Tout les {label}</Box>
+        <Button variant="text" onClick={() => handleSelect(null, null, _MP3)}>
+          <Typography sx={classes.breadcrumbLabel}> Lire tout les {label}</Typography>
+        </Button>
       </Breadcrumbs>
     );
   }
@@ -227,12 +242,18 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
   /***
    *
    */
-  function handleSelect(level: string, label: string, nextLevel: string) {
-    setLevel(nextLevel);
-    let nf = { ...filters };
-    // @ts-ignore
-    nf[level] = [...nf[level], label];
+  function handleSelect(level: string | null, label: string | null, nextLevel: string) {
+    console.log("handleSelect",level,nextLevel)
+    if (level) {
+      let nf = { ...filters };
+      // @ts-ignore
+      nf[level] = [...nf[level], label];
 
-    setFilters(nf);
+      setFilters(nf);
+    }
+
+    setTimeout(() => {
+      setLevel(nextLevel);
+    }, _DEBOUNCETIMEOUT);
   }
 }

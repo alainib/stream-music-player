@@ -19,7 +19,7 @@ import ListContainer from './widgets/ListContainer';
 import { Mp3 } from '../type';
 import { pathToFolderImageFromPath, scrollToAnchor } from '../tools';
 import useMediaQueries from '../hooks/useMediaQueries';
-import { useModalPlaylistContext } from '../hooks/PlaylistContext';
+import { useModalPlaylistContext } from '../context/PlaylistContext';
 import Config from '../Config';
 import { runQuery } from '../services/music';
 
