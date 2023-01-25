@@ -139,7 +139,10 @@ function randMax(max: number) {
   return Math.floor(Math.random() * (max + 1));
 }
 
-
-export function clj(props:any){
-  console.log(JSON.stringify(props,null,2));
+export function clj(label: string | null, props: any) {
+  if (label) {
+    console.log(label, JSON.stringify(props, null, 2));
+  } else {
+    console.log(JSON.stringify(props, null, 2));
+  }
 }

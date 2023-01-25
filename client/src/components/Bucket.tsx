@@ -1,9 +1,13 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Box } from '@mui/material';
 import { BucketType } from '../type';
 import ButtonBGImage from './widgets/ButtonBGImage';
 import Config from '../Config';
+
+import useDebounce from '../hooks/useDebounce';
+
+const _DEBOUNCETIMEOUT = 1000;
 
 const classes = {
   container: {
@@ -21,8 +25,17 @@ type BucketProps = {
 
 export default function Bucket({ data, vignetsSize = 200, onSelect }: any) {
   const isData = !!data && data?.length > 0;
+ 
 
-  const memoizedData = useMemo(() => renderData(), [data]);
+  const [selection, setSelection] = useState<string[]>([]);
+
+  const debouncedSelection = useDebounce(selection, _DEBOUNCETIMEOUT);
+
+  useEffect(() => {
+    if (debouncedSelection?.length > 0) {
+      onSelect(debouncedSelection);
+    }
+  }, [debouncedSelection]);
 
   return (
     <Box sx={classes.container} id="BucketComponent">
@@ -32,12 +45,12 @@ export default function Bucket({ data, vignetsSize = 200, onSelect }: any) {
           gridTemplateColumns: `repeat(auto-fill, ${vignetsSize + 10}px)`,
         }}
       >
-        {memoizedData}
+        {renderData()}
       </Box>
     </Box>
   );
 
-  function renderData() {    
+  function renderData() {
     if (isData) {
       return data?.map((elem: BucketType, index: number) => (
         <ButtonBGImage
@@ -47,11 +60,16 @@ export default function Bucket({ data, vignetsSize = 200, onSelect }: any) {
           size={vignetsSize}
           colorFromLabel
           label={elem.key}
-          onSelect={() => onSelect(elem.key)}
+          onClick={() => handleOnSelect(elem.key)}
         />
       ));
     } else {
       return null;
     }
+  }
+
+  function handleOnSelect(newkey: string) {
+    setSelection([...selection, newkey]);
+    return null;
   }
 }

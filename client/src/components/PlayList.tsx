@@ -78,23 +78,26 @@ export function PlayList({ list, currentTrack, onTrackChange, loadMore, onSearch
     <>
       <ListContainer id="PlayList" style={style}>
         {list.map((mp3: Mp3, index: number) => (
-          <>
-            <ListItem
-              alignItems="flex-start"
-              key={mp3.id + index}
-              id={mp3.id}
-              selected={currentTrack?.id === mp3.id}
-              sx={{ alignItems: 'center' }}
-            >
-              <ListItemAvatar>
-                <IconButton onClick={() => onTrackChange(index)}>
-                  <Avatar alt={mp3?.title} src={pathToFolderImageFromPath(mp3?.path, 'small')} />
-                </IconButton>
-              </ListItemAvatar>
-              <ListItemText primary={<Mp3Info mp3={mp3} smallText={true} compact={true} onSearch={onSearch} />} />
-            </ListItem>
-            <Divider color={Config.dividerColor} key={mp3.id + 'divider' + index} />
-          </>
+          <ListItem
+            alignItems="flex-start"
+            key={mp3.id + index}
+            id={mp3.id}
+            selected={currentTrack?.id === mp3.id}
+            sx={{
+              alignItems: 'center',
+              borderWidth: '0',
+              borderStyle: 'solid',
+              borderColor: Config.dividerColor,
+              borderBottomWidth: 'thin',
+            }}
+          >
+            <ListItemAvatar>
+              <IconButton onClick={() => onTrackChange(index)}>
+                <Avatar alt={mp3?.title} src={pathToFolderImageFromPath(mp3?.path, 'small')} />
+              </IconButton>
+            </ListItemAvatar>
+            <ListItemText primary={<Mp3Info mp3={mp3} smallText={true} compact={true} onSearch={onSearch} />} />
+          </ListItem>
         ))}
       </ListContainer>
       {loadMore && (

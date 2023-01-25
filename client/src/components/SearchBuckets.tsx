@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import { styled } from '@mui/material/styles';
 
@@ -13,13 +13,11 @@ import Bucket from './Bucket';
 import { PlayListWithQuery } from './PlayList';
 // import SizeSlider from './widgets/SizeSlider';
 import useMediaQueries from '../hooks/useMediaQueries';
-import useDebounce from '../hooks/useDebounce';
 import { useModalSearchBucketsContext } from '../context/SearchBucketsContext';
-import { upperFirstLetter ,clj} from '../tools';
+import { upperFirstLetter } from '../tools';
 import Config from '../Config';
 
 const _windowRatioSize = window.innerWidth < 600 ? 100 : 125;
-const _DEBOUNCETIMEOUT = 1000;
 
 const SearchBucketsFixedContainer = styled(Box)(({ theme }) => ({
   position: 'fixed',
@@ -83,6 +81,7 @@ function newFilters() {
     artist: [],
     album: [],
     mp3: [],
+    level: _GENRES,
   };
 }
 
@@ -91,6 +90,7 @@ type FiltersType = {
   artist: string[];
   album: string[];
   mp3: string[];
+  level: string;
 };
 
 const classes = {
@@ -118,31 +118,20 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
   -  mp3 of an album
   -  search 
   */
-  const [level, setLevel] = useState<string>(_GENRES);
-  /**
-   * use filters for write, use debouncedFilters for reading and query
-   * filters are set from different functions, this change are copied to debouncedFilters only 1s, so you can add multiple genre for example and doing only one query
-   */
   const [filters, setFilters] = useState<FiltersType>(newFilters);
-  const [debouncedFilters, setDebouncedFilters] = useState<FiltersType>(newFilters);
-
-  // set filters on each aggs change
-  const debouncedFiltersTmp = useDebounce(filters, _DEBOUNCETIMEOUT);
-  console.log(debouncedFiltersTmp)
-  useEffect(() => {
-    setDebouncedFilters(debouncedFiltersTmp);
-  }, [debouncedFiltersTmp]);
 
   useEffect(() => {
     searchBuckets();
-  }, [debouncedFilters]);
+  }, [filters]);
 
   async function searchBuckets() {
     if (!loading) {
       setLoading(true);
       let resDatas;
-      if (level !== _MP3) {
-        resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getaggs', filters: debouncedFilters });
+      if (filters.level !== _MP3) {
+        setBuckets(newBuckets());
+
+        resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getaggs', filters });
         setBuckets(resDatas);
       }
 
@@ -151,23 +140,14 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
     return null;
   }
 
-  clj({debouncedFilters, level});
+  console.log({ filters });
 
   return (
     <Box sx={isMobile ? mobileStyle : desktopStyle} id="SearchBucketsComponent">
       <Box>
         {renderTopBar()}
 
-        {level === _GENRES && (
-          <Bucket data={buckets?.genre} onSelect={(label: string) => handleSelect(level, label, _ARTISTS)} vignetsSize={vignetsSize} />
-        )}
-        {level === _ARTISTS && (
-          <Bucket data={buckets?.artist} onSelect={(label: string) => handleSelect(level, label, _ALBUMS)} vignetsSize={vignetsSize} />
-        )}
-        {level === _ALBUMS && (
-          <Bucket data={buckets?.album} onSelect={(label: string) => handleSelect(level, label, _MP3)} vignetsSize={vignetsSize} />
-        )}
-        {level === _MP3 && <PlayListWithQuery filters={debouncedFilters} changePlaylist={changePlaylist} />}
+        {renderBuckets()}
       </Box>
       {/*
         <Box sx={{}}>
@@ -179,7 +159,7 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
 
   function renderTopBar() {
     let label = 'mp3';
-    switch (level) {
+    switch (filters.level) {
       case _ROOT:
         label = '';
         break;
@@ -203,10 +183,10 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
         {[_GENRES, _ARTISTS, _ALBUMS].map((t: string) => {
           return (
             //@ts-ignore
-            debouncedFilters[t]?.length > 0 && (
+            filters[t]?.length > 0 && (
               <Button key={t} variant="text" onClick={() => clearFilter(t)}>
                 {/*@ts-ignore*/}
-                <Typography sx={classes.breadcrumbLabel}> {upperFirstLetter(debouncedFilters[t].join(', '))}</Typography>
+                <Typography sx={classes.breadcrumbLabel}> {upperFirstLetter(filters[t].join(', '))}</Typography>
               </Button>
             )
           );
@@ -219,22 +199,50 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
     );
   }
 
+  function renderBuckets() {
+    switch (filters.level) {
+      case _GENRES:
+        return (
+          <Bucket
+            data={buckets?.genre}
+            onSelect={(labels: string[]) => handleSelect(filters.level, labels, _ARTISTS)}
+            vignetsSize={vignetsSize}
+          />
+        );
+      case _ARTISTS:
+        return (
+          <Bucket
+            data={buckets?.artist}
+            onSelect={(labels: string[]) => handleSelect(filters.level, labels, _ALBUMS)}
+            vignetsSize={vignetsSize}
+          />
+        );
+      case _ALBUMS:
+        return (
+          <Bucket
+            data={buckets?.album}
+            onSelect={(labels: string[]) => handleSelect(filters.level, labels, _MP3)}
+            vignetsSize={vignetsSize}
+          />
+        );
+      case _MP3:
+        return <PlayListWithQuery filters={filters} changePlaylist={changePlaylist} />;
+    }
+  }
+
   function clearFilter(newLevel: string) {
     switch (newLevel) {
       case _ROOT:
         setFilters(newFilters);
-        setLevel(_GENRES);
         break;
       case _GENRES:
-        setFilters({ ...filters, [_ARTISTS]: [], [_ALBUMS]: [] });
-        setLevel(_ARTISTS);
+        setFilters({ ...filters, [_ARTISTS]: [], [_ALBUMS]: [], level: _ARTISTS });
         break;
       case _ARTISTS:
-        setFilters({ ...filters, [_ALBUMS]: [] });
-        setLevel(_ALBUMS);
+        setFilters({ ...filters, [_ALBUMS]: [], level: _ALBUMS });
         break;
       case _ALBUMS:
-        setLevel(_ALBUMS);
+        setFilters({ ...filters, level: _ALBUMS });
         break;
     }
   }
@@ -242,18 +250,14 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
   /***
    *
    */
-  function handleSelect(level: string | null, label: string | null, nextLevel: string) {
-    console.log("handleSelect",level,nextLevel)
-    if (level) {
-      let nf = { ...filters };
-      // @ts-ignore
-      nf[level] = [...nf[level], label];
+  function handleSelect(level: string | null, labels: string[] | null, nextLevel: string) {
+    let nf = { ...filters, level: nextLevel };
 
-      setFilters(nf);
+    if (level) {
+      // @ts-ignore
+      nf[level] = labels;
     }
 
-    setTimeout(() => {
-      setLevel(nextLevel);
-    }, _DEBOUNCETIMEOUT);
+    setFilters(nf);
   }
 }

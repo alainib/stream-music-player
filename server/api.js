@@ -93,8 +93,9 @@ router.post('/api/getaggs', async function (req, res) {
       album: cleanData(response.data?.aggregations?.album?.buckets),
       artist: cleanData(response.data?.aggregations?.artist?.buckets)
     }
-
-    res.status(200).json(aggregations)
+    setTimeout(() => {
+      res.status(200).json(aggregations)
+    }, 2000);
 
   } catch (err) {
     console.log("error in /api/getaggs")
@@ -112,7 +113,7 @@ router.post('/api/getaggs', async function (req, res) {
 router.post('/api/getmusicof', async function (req, res) {
   const {filters} = req.body;
   console.log("/api/getmusicof", req.body)
-  try {    
+  try {
     const response = await instance.post(config.elasticIndexUrl, {
       "size": 150,
       query: createQueryFromFilters(filters)
@@ -123,6 +124,7 @@ router.post('/api/getmusicof', async function (req, res) {
     res.status(500).json({message: err});
   }
 });
+
 
 function createQueryFromFilters(filters) {
   /*  aggs must need  :
@@ -154,15 +156,15 @@ function createQueryFromFilters(filters) {
   },
   */
 
+  const availableFieldNames = ['genre', 'artist', 'album'];
 
   let must = [];
 
   for (const propertyName in filters) {
-
-    if (filters[propertyName].length > 0) {
+    if (filters[propertyName].length > 0 && availableFieldNames.includes(propertyName)) {
       let newShouldForMust = [];
       for (const value of filters[propertyName]) {
-        newShouldForMust.push({"term": {[propertyName+".keyword"]: value}})
+        newShouldForMust.push({"term": {[propertyName + ".keyword"]: value}})
       }
       if (newShouldForMust?.length > 0) {
         must.push({

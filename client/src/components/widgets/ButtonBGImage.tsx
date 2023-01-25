@@ -24,15 +24,15 @@ type ButtonBGImageProps = {
   id: string;
   size: number;
   colorFromLabel: boolean; // is false backgroundcolor is set from the first letter of the filename or the src, if true it's set from first letter of label (for genre / album for example)
-  onSelect: (label: string) => null;
+  onClick: (label: string) => null;
 };
 
-export default function ButtonBGImage({ src, id, size, label, colorFromLabel = false, onSelect }: ButtonBGImageProps) {
+export default function ButtonBGImage({ src, id, size, label, colorFromLabel = false, onClick }: ButtonBGImageProps) {
   const c = colorFromLabel ? label?.[0] : extractInfoFromPath(src)?.filename?.[0] || label?.[0];
    
   return (
     <ButtonBase
-      onClick={() => onSelect(label)}
+      onClick={() => onClick(label)}
       focusRipple
       key={id}
       sx={(theme) => ({

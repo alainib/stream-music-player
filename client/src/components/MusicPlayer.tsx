@@ -98,48 +98,41 @@ export function MusicPlayer() {
 
   const mainIconColor = theme.palette.mode === 'dark' ? '#fff' : '#000';
 
-  console.log('MusicPlayerComponent', { list, history });
+  const memoizedPlayerRender = useMemo(() => renderCurrentPlayer(), [list, currentTrackIndex, currentTrack]);
 
-  const memoizedRender = useMemo(() => render(), [list, history, currentTrackIndex, currentTrack]);
+  if (isMobile) {
+    return (
+      <Box id="MusicPlayerComponentMobile" sx={{ width: '100%', overflow: 'hidden' }}>
+        <PlayListWithModal
+          currentTrack={currentTrack}
+          list={list}
+          onTrackChange={handleTrackChange}
+          loadMore={handleLoadMore}
+          onSearch={onSearch}
+        />
+        <SearchBucketsWithModal changePlaylist={handleListChange} />
+        {memoizedPlayerRender}
+      </Box>
+    );
+  } else {
+    return (
+      <Box id="MusicPlayerComponentDesktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
+        <div>{memoizedPlayerRender}</div>
 
-  return memoizedRender;
-
-  function render() {
-    console.log('render');
-    if (isMobile) {
-      return (
-        <Box id="MusicPlayerComponentMobile" sx={{ width: '100%', overflow: 'hidden' }}>
-          <PlayListWithModal
-            currentTrack={currentTrack}
-            list={list}
-            onTrackChange={handleTrackChange}
-            loadMore={handleLoadMore}
-            onSearch={onSearch}
-          />
-          <SearchBucketsWithModal changePlaylist={handleListChange} />
-          {renderCurrentPlayer()}
+        <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
+          {showPlaylist && !showSearchBuckets && (
+            <PlayList
+              currentTrack={currentTrack}
+              list={list}
+              onTrackChange={handleTrackChange}
+              loadMore={handleLoadMore}
+              onSearch={onSearch}
+            />
+          )}
+          {showSearchBuckets && !showPlaylist && <SearchBuckets changePlaylist={handleListChange} />}
         </Box>
-      );
-    } else {
-      return (
-        <Box id="MusicPlayerComponentDesktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
-          <div>{renderCurrentPlayer()}</div>
-
-          <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
-            {showPlaylist && !showSearchBuckets && (
-              <PlayList
-                currentTrack={currentTrack}
-                list={list}
-                onTrackChange={handleTrackChange}
-                loadMore={handleLoadMore}
-                onSearch={onSearch}
-              />
-            )}
-            {showSearchBuckets && !showPlaylist && <SearchBuckets changePlaylist={handleListChange} />}
-          </Box>
-        </Box>
-      );
-    }
+      </Box>
+    );
   }
 
   function renderCurrentPlayer() {
@@ -249,8 +242,7 @@ export function MusicPlayer() {
   }
 
   // change the playlist when mp3 are choosed from facets search
-  function handleListChange(nlist: Mp3[], index: number) {
-    console.log('handle change list ' + index, nlist);
+  function handleListChange(nlist: Mp3[], index: number) {   
     setHistory(list);
     setList(nlist);
     handleTrackChange(index);
