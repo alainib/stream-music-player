@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 import { styled } from '@mui/material/styles';
 
@@ -14,7 +14,7 @@ import { PlayListWithQuery } from './PlayList';
 // import SizeSlider from './widgets/SizeSlider';
 import useMediaQueries from '../hooks/useMediaQueries';
 import { useModalSearchBucketsContext } from '../context/SearchBucketsContext';
-import { upperFirstLetter } from '../tools';
+import { upperFirstLetter, clj } from '../tools';
 import Config from '../Config';
 
 const _windowRatioSize = window.innerWidth < 600 ? 100 : 125;
@@ -127,20 +127,19 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
   async function searchBuckets() {
     if (!loading) {
       setLoading(true);
-      let resDatas;
-      if (filters.level !== _MP3) {
-        setBuckets(newBuckets());
-
-        resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getaggs', filters });
-        setBuckets(resDatas);
-      }
-
-      setLoading(false);
     }
+    let resDatas;
+    if (filters.level !== _MP3) {
+      setBuckets(newBuckets());
+
+      resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getaggs', filters });
+      setBuckets(resDatas);
+    }
+
+    setLoading(false);
+
     return null;
   }
-
-  console.log({ filters });
 
   return (
     <Box sx={isMobile ? mobileStyle : desktopStyle} id="SearchBucketsComponent">
@@ -193,13 +192,16 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
         })}
 
         <Button variant="text" onClick={() => handleSelect(null, null, _MP3)}>
-          <Typography sx={classes.breadcrumbLabel}> Lire tout les {label}</Typography>
+          <Typography sx={classes.breadcrumbLabel}> Afficher tout les {label}</Typography>
         </Button>
       </Breadcrumbs>
     );
   }
 
   function renderBuckets() {
+    if (loading) {
+      return null;
+    }
     switch (filters.level) {
       case _GENRES:
         return (
@@ -259,5 +261,6 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
     }
 
     setFilters(nf);
+    setLoading(true);
   }
 }

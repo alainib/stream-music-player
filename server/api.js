@@ -93,9 +93,8 @@ router.post('/api/getaggs', async function (req, res) {
       album: cleanData(response.data?.aggregations?.album?.buckets),
       artist: cleanData(response.data?.aggregations?.artist?.buckets)
     }
-    setTimeout(() => {
-      res.status(200).json(aggregations)
-    }, 2000);
+    res.status(200).json(aggregations)
+
 
   } catch (err) {
     console.log("error in /api/getaggs")
