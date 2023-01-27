@@ -13,7 +13,27 @@ const instance = axios.create({
     password: config.elasticPassword
   },
   headers: {Accept: "application/json", "Content-Type": "application/json"}
-});
+})
+
+function logError(error) {
+  function clj(props) {
+    console.log(JSON.stringify(props, null, 2));
+  }
+  if (error.response) {
+    // The request was made and the server responded with a status code
+    // that falls out of the range of 2xx
+    clj(error.response.data);
+    clj(error.response.status);
+  } else if (error.request) {
+    // The request was made but no response was received
+    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+    // http.ClientRequest in node.js
+    clj(error.request);
+  } else {
+    // Something happened in setting up the request that triggered an Error
+    console.log('Error', JSON.stringify(error.message, null, 2));
+  }
+};
 
 router.get('/api/test', async function (req, res) {
   console.log("get api/test ",);
@@ -34,7 +54,7 @@ router.get('/api/getrandommusic', async function (req, res) {
       res.status(200).json(cleanHits(response.data))
 
     } catch (err) {
-      console.log(err)
+      logError(err)
       res.status(500).json({message: err});
     }
   }
@@ -48,44 +68,11 @@ router.post('/api/getaggs', async function (req, res) {
   console.log("/api/getaggs", filters)
 
   try {
-    // subaggs to get path for image
-    const subaggs = {
-      "path": {
-        "terms": {
-          "size": 1,
-          "field": "path.keyword"
-        }
-      }
-    };
 
     const response = await instance.post(config.elasticIndexUrl, {
       "size": 0,
       query: createQueryFromFilters(filters),
-      "aggs": {
-        /* "titre": {        "terms": {             "size": 25,           "field": "titre.keyword_not_normalized"          }        },*/
-        "album": {
-          "terms": {
-            "size": 250,
-            "field": "album.keyword_not_normalized"
-          },
-          aggs: subaggs
-        },
-        "genre": {
-          "terms": {
-            "size": 50,
-            "field": "genre.keyword_not_normalized"
-          },
-          aggs: subaggs
-
-        },
-        "artist": {
-          "terms": {
-            "size": 250,
-            "field": "artist.keyword_not_normalized"
-          },
-          aggs: subaggs
-        }
-      }
+      "aggs": createAggs(filters)
     });
 
     const aggregations = {
@@ -98,12 +85,12 @@ router.post('/api/getaggs', async function (req, res) {
 
   } catch (err) {
     console.log("error in /api/getaggs")
-    console.log(err)
+    logError(err)
     res.status(500).json({message: err});
   }
 
   function cleanData(buckets) {
-    return buckets.map(({key, doc_count, path}) => ({key, doc_count, path: path?.buckets?.[0]?.key}))
+    return buckets?.map(({key, doc_count, path}) => ({key, doc_count, path: path?.buckets?.[0]?.key})) || []
   }
 });
 
@@ -119,7 +106,7 @@ router.post('/api/getmusicof', async function (req, res) {
     });
     res.status(200).json(cleanHits(response.data))
   } catch (err) {
-    console.log(err)
+    logError(err)
     res.status(500).json({message: err});
   }
 });
@@ -160,7 +147,7 @@ function createQueryFromFilters(filters) {
   let must = [];
 
   for (const propertyName in filters) {
-    if (filters[propertyName].length > 0 && availableFieldNames.includes(propertyName)) {
+    if (!!filters[propertyName] && filters[propertyName].length > 0 && availableFieldNames.includes(propertyName)) {
       let newShouldForMust = [];
       for (const value of filters[propertyName]) {
         newShouldForMust.push({"term": {[propertyName + ".keyword"]: value}})
@@ -188,6 +175,67 @@ function createQueryFromFilters(filters) {
   return query
 }
 
+function createAggs(filters) {
+  // subaggs to get path for image
+  const _subaggs = {
+    "path": {
+      "terms": {
+        "size": 1,
+        "field": "path.keyword"
+      }
+    }
+  };
+
+  const _aggs = {
+    /* "titre": {        "terms": {             "size": 25,           "field": "titre.keyword_not_normalized"          }        },*/
+    "album": {
+      "terms": {
+        "size": 500,
+        "field": "album.keyword_not_normalized",
+        "order": {
+          "_key": "asc"
+        }
+      },
+      aggs: _subaggs
+    },
+    "genre": {
+      "terms": {
+        "size": 150,
+        "field": "genre.keyword_not_normalized",
+        "order": {
+          "_key": "asc"
+        }
+      },
+      aggs: _subaggs
+    },
+    "artist": {
+      "terms": {
+        "size": 2500,
+        "field": "artist.keyword_not_normalized",
+        "order": {
+          "_key": "asc"
+        }
+      },
+      aggs: _subaggs
+    }
+  }
+
+
+  return {
+    [filters.level]: {
+      "terms": {
+        "size": 500,
+        "field": `${filters.level}.keyword_not_normalized`,
+        "order": {
+          "_key": "asc"
+        }
+      },
+      aggs: _subaggs
+    }
+  }
+
+
+}
 
 function cleanFilePath(path = "") {
   return path.replace(config.musicSrcPath, "");

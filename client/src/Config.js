@@ -25,8 +25,7 @@ const fontbasesize = 16;
 export default {
   api_path,
   static_path,
-  iconColor: '#C8CBCD',
-  dividerColor: '#838387',
+
   spacings: {
     verytiny: "3px",
     tiny: "5px",
@@ -62,16 +61,16 @@ export default {
     semibold: 600,
     bold: 700,
   },
+
   colors: {
-    white: "#ffffff",
+    dividerColor: '#838387',
+    white: "rgb(243, 244, 246)",
     verylightgray: "#f6f6f6",
-    lightgray: "#f4f4f4",
+    lightgray: "#C8CBCD",
     mediumgray: "#e6e6e6",
-    darkgray: "#828282",
     gray: "#828282",
     verydarkgray: "#6c6969",
     black: "#000000",
-    loading_placeholder: "#f4f4f4",
-    orange: "#ff6923",
+
   },
 };

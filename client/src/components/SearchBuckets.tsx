@@ -12,6 +12,8 @@ import { runQuery } from '../services/music';
 import Bucket from './Bucket';
 import { PlayListWithQuery } from './PlayList';
 // import SizeSlider from './widgets/SizeSlider';
+
+import useLocalStorage from '../hooks/useLocalStorage';
 import useMediaQueries from '../hooks/useMediaQueries';
 import { useModalSearchBucketsContext } from '../context/SearchBucketsContext';
 import { upperFirstLetter, clj } from '../tools';
@@ -47,7 +49,7 @@ export function SearchBucketsWithModal(props: SearchBucketsWithModalProps) {
           <Grid container direction="column" justifyContent="flex-start" alignItems="flex-end">
             <Grid item xs>
               <IconButton aria-label="next song" onClick={() => setModalShowSearchBuckets(false)}>
-                <CloseIcon id="CloseIcon" fontSize="large" htmlColor={Config.iconColor} />
+                <CloseIcon id="CloseIcon" fontSize="large" htmlColor={Config.colors.lightgray} />
               </IconButton>
             </Grid>
             <Grid item xs>
@@ -69,7 +71,7 @@ const desktopStyle = {
   zIndex: 1,
 };
 
-const _ROOT = 'racine';
+const _ALL = 'racine';
 const _GENRES = 'genre';
 const _ARTISTS = 'artist';
 const _ALBUMS = 'album';
@@ -118,7 +120,7 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
   -  mp3 of an album
   -  search 
   */
-  const [filters, setFilters] = useState<FiltersType>(newFilters);
+  const [filters, setFilters] = useLocalStorage('bucketsFilters', newFilters());
 
   useEffect(() => {
     searchBuckets();
@@ -159,23 +161,23 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
   function renderTopBar() {
     let label = 'mp3';
     switch (filters.level) {
-      case _ROOT:
-        label = '';
-        break;
-      case _GENRES:
+      case _ALL:
         label = 'Genres';
         break;
-      case _ARTISTS:
+      case _GENRES:
         label = 'Artistes';
         break;
-      case _ALBUMS:
+      case _ARTISTS:
         label = 'Albums';
+        break;
+      case _ALBUMS:
+        label = 'mp3';
         break;
     }
 
     return (
       <Breadcrumbs sx={{ marginLeft: '25px', marginTop: '25px', color: 'white' }} aria-label="breadcrumb" separator={<NavigateNextIcon />}>
-        <Button variant="text" onClick={() => clearFilter(_ROOT)}>
+        <Button variant="text" onClick={() => clearFilter(_ALL)}>
           <HomeIcon sx={classes.breadcrumbLabel} fontSize="small" />
         </Button>
 
@@ -191,50 +193,16 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
           );
         })}
 
-        <Button variant="text" onClick={() => handleSelect(null, null, _MP3)}>
+        <Button variant="text" onClick={() => handleSelect(null)}>
           <Typography sx={classes.breadcrumbLabel}> Afficher tout les {label}</Typography>
         </Button>
       </Breadcrumbs>
     );
   }
 
-  function renderBuckets() {
-    if (loading) {
-      return null;
-    }
-    switch (filters.level) {
-      case _GENRES:
-        return (
-          <Bucket
-            data={buckets?.genre}
-            onSelect={(labels: string[]) => handleSelect(filters.level, labels, _ARTISTS)}
-            vignetsSize={vignetsSize}
-          />
-        );
-      case _ARTISTS:
-        return (
-          <Bucket
-            data={buckets?.artist}
-            onSelect={(labels: string[]) => handleSelect(filters.level, labels, _ALBUMS)}
-            vignetsSize={vignetsSize}
-          />
-        );
-      case _ALBUMS:
-        return (
-          <Bucket
-            data={buckets?.album}
-            onSelect={(labels: string[]) => handleSelect(filters.level, labels, _MP3)}
-            vignetsSize={vignetsSize}
-          />
-        );
-      case _MP3:
-        return <PlayListWithQuery filters={filters} changePlaylist={changePlaylist} />;
-    }
-  }
-
   function clearFilter(newLevel: string) {
     switch (newLevel) {
-      case _ROOT:
+      case _ALL:
         setFilters(newFilters);
         break;
       case _GENRES:
@@ -249,18 +217,49 @@ export function SearchBuckets({ changePlaylist }: SearchBucketsProps) {
     }
   }
 
-  /***
-   *
-   */
-  function handleSelect(level: string | null, labels: string[] | null, nextLevel: string) {
+  function handleSelect(labels: string[] | null) {
+    console.log('handleSelect', { filters, labels });
+    const level = filters.level;
+    let nextLevel;
+    switch (level) {
+      case _ALL:
+        nextLevel = _GENRES;
+        break;
+      case _GENRES:
+        nextLevel = _ARTISTS;
+        break;
+      case _ARTISTS:
+        nextLevel = _ALBUMS;
+        break;
+      case _ALBUMS:
+        nextLevel = _MP3;
+        break;
+    }
+
     let nf = { ...filters, level: nextLevel };
 
-    if (level) {
+    if (labels) {
       // @ts-ignore
       nf[level] = labels;
     }
-
+    console.log(nf);
     setFilters(nf);
     setLoading(true);
+  }
+
+  function renderBuckets() {
+    if (loading) {
+      return null;
+    }
+    switch (filters.level) {
+      case _GENRES:
+        return <Bucket data={buckets?.genre} onSelect={(labels: string[]) => handleSelect(labels)} vignetsSize={vignetsSize} />;
+      case _ARTISTS:
+        return <Bucket data={buckets?.artist} onSelect={(labels: string[]) => handleSelect(labels)} vignetsSize={vignetsSize} />;
+      case _ALBUMS:
+        return <Bucket data={buckets?.album} onSelect={(labels: string[]) => handleSelect(labels)} vignetsSize={vignetsSize} />;
+      case _MP3:
+        return <PlayListWithQuery filters={filters} changePlaylist={changePlaylist} />;
+    }
   }
 }

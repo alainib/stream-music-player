@@ -17,6 +17,7 @@ import { PlayListWithModal, PlayList } from './PlayList';
 import { SearchBucketsWithModal, SearchBuckets } from './SearchBuckets';
 import Mp3Info from './Mp3Info';
 import Image from './widgets/Image';
+import { HistoryPlaylist, addListToHistory } from './widgets/HistoryPlaylist';
 import AudioPlayer from './AudioPlayer';
 import useMediaQueries from '../hooks/useMediaQueries';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -24,6 +25,7 @@ import { useModalPlaylistContext } from '../context/PlaylistContext';
 import { runQuery } from '../services/music';
 import Config from '../Config';
 import { Mp3, newMp3 } from '../type';
+import { shuffleArray } from '../tools';
 
 const Widget = styled('div')(({ theme }) => ({
   padding: 16,
@@ -96,8 +98,6 @@ export function MusicPlayer() {
     }
   }, [list]);
 
-  const mainIconColor = theme.palette.mode === 'dark' ? '#fff' : '#000';
-
   const memoizedPlayerRender = useMemo(() => renderCurrentPlayer(), [list, currentTrackIndex, currentTrack]);
 
   if (isMobile) {
@@ -142,13 +142,14 @@ export function MusicPlayer() {
           <Grid container direction="row" justifyContent="space-between" alignItems="center">
             <Grid item>
               <IconButton aria-label="next song" onClick={handleShowSearchBuckets} id="loadMore" sx={{ zIndex: 1 }}>
-                <ManageSearchIcon fontSize="large" htmlColor={Config.iconColor} />
+                <ManageSearchIcon fontSize="large" htmlColor={Config.colors.lightgray} />
               </IconButton>
             </Grid>
+            <HistoryPlaylist history={history} changePlaylist={handleListChange} />
 
             <Grid item>
               <IconButton aria-label="next song" onClick={handleShowPlaylist} id="loadMore" sx={{ zIndex: 1 }}>
-                <QueueMusicIcon fontSize="large" htmlColor={Config.iconColor} />
+                <QueueMusicIcon fontSize="large" htmlColor={Config.colors.lightgray} />
               </IconButton>
             </Grid>
           </Grid>
@@ -156,8 +157,8 @@ export function MusicPlayer() {
             <Image src={currentTrack?.path} size="large" />
           </CoverImage>
           {loading ? <LoadingGif /> : renderPlayer()}
-          <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', height: '70px' }}>
-            <Mp3Info mp3={currentTrack} compact={false} onSearch={onSearch} />
+          <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', minHeight: '90px' }}>
+            <Mp3Info mp3={currentTrack} compact={true} onSearch={onSearch} />
           </Box>
         </Box>
       </Widget>
@@ -182,12 +183,6 @@ export function MusicPlayer() {
     }
   }
 
-  /*
-  const { showModalPlaylist, setModalShowPlaylist } =  
-  const [showPlaylist, ] =  
-  const [showSearchBuckets, ] 
-  */
-
   function handleTrackChange(index: number) {
     if (index !== currentTrackIndex && list?.[index]) {
       // don't do this setCurrentTrack(list[index]); useEffect do it to avoid side effect
@@ -200,11 +195,9 @@ export function MusicPlayer() {
     console.log({ search, field });
     setLoading(true);
     const resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getmusicof', filters: { [field]: [search] } });
-    console.log(resDatas);
 
-    //setList(resDatas?.hits?.hits.map((elem: any) => ({ id: elem.id, ...elem?._source })));
-    setHistory(list);
-    setList(resDatas);
+    setListToHistory(list, history);
+    _setList(resDatas);
     setLoading(false);
 
     return null;
@@ -214,7 +207,7 @@ export function MusicPlayer() {
     setLoading(true);
     const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' });
     console.log(res);
-    setList(res);
+    _setList(res);
     handleTrackChange(0);
     setLoading(false);
   }
@@ -226,10 +219,10 @@ export function MusicPlayer() {
   async function getNextRandomMusic(setCTI: boolean = false, replaceList: boolean = false) {
     const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' });
     if (replaceList) {
-      setList(res);
+      _setList(res);
       handleTrackChange(0);
     } else {
-      setList((list: Mp3[]) => [...list, ...res]);
+      _setList([...list, ...res]);
       if (setCTI) {
         handleTrackChange(currentTrackIndex + 1);
       }
@@ -242,36 +235,55 @@ export function MusicPlayer() {
   }
 
   // change the playlist when mp3 are choosed from facets search
-  function handleListChange(nlist: Mp3[], index: number) {   
-    setHistory(list);
-    setList(nlist);
+  function handleListChange(newlist: Mp3[], index: number, addToHistory: boolean = true) {
+    if (addToHistory) {
+      setListToHistory(list, history);
+    }
+    _setList(newlist);
     handleTrackChange(index);
+    handleShowPlaylist();
     return null;
   }
 
-  function handleOnEnd() {
-    handleNext();
+  function _setList(a: Mp3[]) {
+    setList(a || []);
   }
 
-  function handlePrevious() {
-    if (currentTrackIndex > 0) {
+  function handleOnEndOfTrack() {
+    handleNextTrack();
+  }
+
+  function isFirstTrack() {
+    return currentTrackIndex === 0;
+  }
+  function handlePreviousTrack() {
+    if (!isFirstTrack()) {
       handleTrackChange(currentTrackIndex - 1);
     }
   }
 
-  function handleNext() {
-    if (currentTrackIndex + 1 < list.length) {
+  function isLastTrack() {
+    return currentTrackIndex + 1 === list?.length;
+  }
+  function handleNextTrack() {
+    if (!isLastTrack()) {
       handleTrackChange(currentTrackIndex + 1);
     } else {
       getNextRandomMusic(true);
     }
   }
-  function handleShuffle() {
-    getNextRandomMusic(true, true);
+
+  function handleShuffleTrack() {
+    //getNextRandomMusic(true, true);
+    setList(shuffleArray(list));
+  }
+
+  function setListToHistory(list: Mp3[], history: []) {
+    setHistory(addListToHistory(list, history));
   }
 
   function renderAudio() {
-    return <AudioPlayer src={currentTrack?.path} handleOnEnd={handleOnEnd} />;
+    return <AudioPlayer src={currentTrack?.path} handleOnEndOfTrack={handleOnEndOfTrack} />;
   }
 
   function renderPlayer() {
@@ -287,42 +299,68 @@ export function MusicPlayer() {
           width: '100%',
         }}
       >
-        {isMobile ? (
+        <Grid container direction="row" justifyContent="space-around" alignItems="center">
+          <Grid item xs={12}>
+            {renderAudio()}
+          </Grid>
+          <Grid item xs={4}>
+            {renderPreviousTrackButton()}
+          </Grid>
+
+          <Grid item xs={4}>
+            <IconButton aria-label="next song" onClick={() => handleShuffleTrack()}>
+              <ShuffleIcon fontSize="medium" htmlColor={Config.colors.black} />
+            </IconButton>
+          </Grid>
+          <Grid item xs={4}>
+            {renderNextTrackButton()}
+          </Grid>
+        </Grid>
+      </Box>
+    );
+    /*isMobile ? (
           <>
             <Grid container direction="row" justifyContent="space-around" alignItems="center">
               <Grid item xs={12}>
                 {renderAudio()}
               </Grid>
               <Grid item xs={4}>
-                <IconButton aria-label="previous song" onClick={() => handlePrevious()}>
-                  <FastRewindRounded fontSize="medium" htmlColor={mainIconColor} />
-                </IconButton>
+                {renderPreviousTrackButton()}
               </Grid>
 
               <Grid item xs={4}>
-                <IconButton aria-label="next song" onClick={() => handleShuffle()}>
-                  <ShuffleIcon fontSize="medium" htmlColor={mainIconColor} />
+                <IconButton aria-label="next song" onClick={() => handleShuffleTrack()}>
+                  <ShuffleIcon fontSize="medium" htmlColor={Config.colors.lightgray} />
                 </IconButton>
               </Grid>
               <Grid item xs={4}>
-                <IconButton aria-label="next song" onClick={() => handleNext()}>
-                  <FastForwardRounded fontSize="medium" htmlColor={mainIconColor} />
-                </IconButton>
+                {renderNextTrackButton()}
               </Grid>
             </Grid>
           </>
         ) : (
           <>
-            <IconButton aria-label="previous song" onClick={() => handlePrevious()}>
-              <FastRewindRounded fontSize="medium" htmlColor={mainIconColor} />
-            </IconButton>
+            {renderPreviousTrackButton()}
             {renderAudio()}
-            <IconButton aria-label="next song" onClick={() => handleNext()}>
-              <FastForwardRounded fontSize="medium" htmlColor={mainIconColor} />
-            </IconButton>
+            {renderNextTrackButton()}
           </>
-        )}
-      </Box>
+        )*/
+  }
+  function renderPreviousTrackButton() {
+    const isFirst = isFirstTrack();
+    return (
+      <IconButton aria-label="previous song" disabled={isFirst} onClick={handlePreviousTrack}>
+        <FastRewindRounded fontSize="medium" htmlColor={isFirst ? Config.colors.mediumgray : Config.colors.black} />
+      </IconButton>
+    );
+  }
+
+  function renderNextTrackButton() {
+    const isLast = isLastTrack();
+    return (
+      <IconButton aria-label="next song" disabled={isLast} onClick={handleNextTrack}>
+        <FastForwardRounded fontSize="medium" htmlColor={isLast ? Config.colors.mediumgray : Config.colors.black} />
+      </IconButton>
     );
   }
 }

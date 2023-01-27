@@ -1,4 +1,4 @@
-export type Mp3 = { id: string; title: string; artist: string; album: string; genre: string; img: string; path: string };
+export type Mp3 = { id: string; title: string; artist: string; album: string; genre: string; img: string; path: string; rating?: number };
 
 export function newMp3() {
   return {
@@ -9,6 +9,7 @@ export function newMp3() {
     genre: '',
     img: '',
     path: '',
+    rating: 0,
   };
 }
 
@@ -27,7 +28,7 @@ export function newBuckets() {
 }
 
 export type BucketType = {
-  key: string;  
+  key: string;
   doc_count: number;
   path: string;
 };

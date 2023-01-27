@@ -1,7 +1,4 @@
-import ButtonBase from '@mui/material/ButtonBase';
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
+import { ButtonBase, Typography, Grid, Box, Rating } from '@mui/material';
 import { Mp3 } from '../type';
 import { upperFirstLetter } from '../tools';
 import Config from '../Config';
@@ -21,15 +18,16 @@ const titleStyle = {
   textOverflow: 'ellipsis',
   alignItems: 'flex-start',
   display: 'flex',
+  width: '100%'
 };
 
 const styleSub = {
   ...titleStyle,
-  color: 'rgb(243, 244, 246)',
+  color: Config.colors.white,
   fontSize: Config.fontSizes.small,
 };
 
-const flexStart95 = { width: '95%', alignItems: 'flex-start', display: 'flex' };
+const flexStart95 = { width: '95%', alignItems: 'flex-start', display: 'flex', flexDirection: 'column' };
 
 export default function Mp3Info({ mp3, compact = false, smallText = false, onSearch }: Mp3InfoProps) {
   const title = upperFirstLetter(mp3?.title);
@@ -38,23 +36,6 @@ export default function Mp3Info({ mp3, compact = false, smallText = false, onSea
   const genre = upperFirstLetter(mp3?.genre);
 
   if (compact) {
-    return (
-      <Grid id="compact" container direction="row" justifyContent="space-between" alignItems="center">
-        <Grid id="boxtitlec" item xs={7} sx={flexStart95}>
-          {renderTitle()}
-        </Grid>
-        <Grid id="boxartistc" item xs={5} sx={flexStart95}>
-          {renderArtist()}
-        </Grid>
-        <Grid id="boxalbumc" item xs={7} sx={flexStart95}>
-          {renderAlbum()}
-        </Grid>
-        <Grid id="boxgenrec" item xs={5} sx={flexStart95}>
-          {renderGenre()}
-        </Grid>
-      </Grid>
-    );
-  } else {
     return (
       <Box
         id="notcompact"
@@ -80,7 +61,49 @@ export default function Mp3Info({ mp3, compact = false, smallText = false, onSea
           {renderArtist()}
           {renderGenre()}
         </Box>
+        <Box
+          id="boxrating"
+          sx={{
+            display: 'flex',
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '95%',
+          }}
+        >
+          {renderRating()}
+        </Box>
       </Box>
+    );
+  } else {
+    return (
+      <Grid id="compact" container direction="row" justifyContent="space-between" alignItems="center">
+        <Grid id="boxtitlec" item xs={8} sx={flexStart95}>
+          <Box>{renderTitle()}</Box>
+          <Box> {renderAlbum()}</Box>
+          <Box> {renderRating()}</Box>
+        </Grid>
+        <Grid id="boxartistc" item xs={4} sx={flexStart95}>
+          <Box> {renderArtist()}</Box>
+          <Box> {renderGenre()}</Box>
+        </Grid>
+      </Grid>
+    );
+  }
+  function renderRating() {
+    return (
+      <Rating
+        name="read-only"
+        value={mp3?.rating}
+        readOnly
+        size="small"
+        sx={{
+          '& .MuiRating-iconFilled': {
+            color: Config.colors.white,
+          },
+        }}
+      />
     );
   }
 

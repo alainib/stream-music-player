@@ -56,7 +56,7 @@ export function PlayListWithModal(props: PlayListWithModalProps) {
           <Grid container direction="column" justifyContent="flex-start" alignItems="flex-end">
             <Grid item xs>
               <IconButton aria-label="next song" onClick={() => setModalShowPlaylist(false)}>
-                <CloseIcon id="CloseIcon" fontSize="large" htmlColor={Config.iconColor} />
+                <CloseIcon id="CloseIcon" fontSize="large" htmlColor={Config.colors.lightgray} />
               </IconButton>
             </Grid>
             <Grid item xs>
@@ -77,7 +77,7 @@ export function PlayList({ list, currentTrack, onTrackChange, loadMore, onSearch
   return (
     <>
       <ListContainer id="PlayList" style={style}>
-        {list.map((mp3: Mp3, index: number) => (
+        {list?.map((mp3: Mp3, index: number) => (
           <ListItem
             alignItems="flex-start"
             key={mp3.id + index}
@@ -87,7 +87,7 @@ export function PlayList({ list, currentTrack, onTrackChange, loadMore, onSearch
               alignItems: 'center',
               borderWidth: '0',
               borderStyle: 'solid',
-              borderColor: Config.dividerColor,
+              borderColor: Config.colors.dividerColor,
               borderBottomWidth: 'thin',
             }}
           >
@@ -96,7 +96,7 @@ export function PlayList({ list, currentTrack, onTrackChange, loadMore, onSearch
                 <Avatar alt={mp3?.title} src={pathToFolderImageFromPath(mp3?.path, 'small')} />
               </IconButton>
             </ListItemAvatar>
-            <ListItemText primary={<Mp3Info mp3={mp3} smallText={true} compact={true} onSearch={onSearch} />} />
+            <ListItemText primary={<Mp3Info mp3={mp3} smallText={true} compact={false} onSearch={onSearch} />} />
           </ListItem>
         ))}
       </ListContainer>
@@ -110,7 +110,7 @@ export function PlayList({ list, currentTrack, onTrackChange, loadMore, onSearch
           id="loadMore"
           sx={{ zIndex: 1 }}
         >
-          <PlaylistAddIcon fontSize="large" htmlColor={Config.iconColor} />
+          <PlaylistAddIcon fontSize="large" htmlColor={Config.colors.lightgray} />
         </IconButton>
       )}
     </>

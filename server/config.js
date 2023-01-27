@@ -163,7 +163,7 @@ const config = {
   elasticUrl: "http://127.0.0.1:9200",
   elasticUserName: 'elastic',
   elasticPassword: 'elastic321',
-  elasticIndexUrl : "/listmp3_v2/_search",
+  elasticIndexUrl : "/listmp3_v3/_search",
   kibanaUrl: "http://localhost:5601/",
   // path to music in external storage like NAS or server
   musicSrcPath: "/Volumes/Multimedia/music",

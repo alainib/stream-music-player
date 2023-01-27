@@ -31,10 +31,11 @@ async function recScanDir(dir, fileList = []) {
         console.log(index++);
         try {
           const metadata = await music_metadata.parseFile(_path);
-          const {title, genre, artist, album, year} = metadata?.common;
+          const {title, genre, artist, album, year, rating} = metadata?.common;
           const line = {
             title: lower(title), genre: lower(genre?.[0]), artist: lower(artist), album: lower(album),
             year, path: _path.replace(config.musicSrcPath, ""),
+            rating: cleanRating(rating),
             id: createId(_path)
           };
           fileList.push(line);
@@ -48,6 +49,29 @@ async function recScanDir(dir, fileList = []) {
     }
   }
   return fileList;
+}
+
+function cleanRating(rating) {
+  /**
+   * some rating are equals to [{"source":"Windows Media Player 9 Series","rating":0.5}]
+   * so to 0.23234234 
+   * some null
+   */
+  let r = 0;
+  try {
+    if (!!rating) {
+      if (Array.isArray(rating)) {
+        r = rating?.[0]?.rating
+      } else {
+        r = rating
+      }
+    }
+  } catch (error) {
+    console.log("cannot cleanRating of", rating);
+  }
+
+  return Math.round(r * 5)
+
 }
 
 /**

@@ -9,6 +9,10 @@ export function cleanString(str: string) {
   return str;
 }
 
+export function shuffleArray(array: []) {
+  return JSON.parse(JSON.stringify(array)).sort(() => Math.random() - 0.5);
+}
+
 export function upperFirstLetter(str: string) {
   const _str = cleanString(str);
   return _str.charAt(0).toUpperCase() + _str.slice(1).toLowerCase();

@@ -96,6 +96,9 @@ listmp3
 
   "year": {
     "type": "long"
+  },
+  "rating": {
+    "type": "long"
   }
 }
 
