@@ -25,7 +25,7 @@ const fontbasesize = 16;
 export default {
   api_path,
   static_path,
-
+  imageSize: 'min(400px,92vw)',
   spacings: {
     verytiny: "3px",
     tiny: "5px",

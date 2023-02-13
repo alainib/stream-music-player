@@ -17,6 +17,7 @@ import { PlayListWithModal, PlayList } from './PlayList';
 import { SearchBucketsWithModal, SearchBuckets } from './SearchBuckets';
 import Mp3Info from './Mp3Info';
 import Image from './widgets/Image';
+import BackgroundImage from './widgets/BackgroundImage';
 import { HistoryPlaylist, addListToHistory } from './widgets/HistoryPlaylist';
 import AudioPlayer from './AudioPlayer';
 import useMediaQueries from '../hooks/useMediaQueries';
@@ -27,12 +28,14 @@ import Config from '../Config';
 import { Mp3, newMp3 } from '../type';
 import { shuffleArray } from '../tools';
 
+ 
+
 const Widget = styled('div')(({ theme }) => ({
   padding: 16,
   paddingTop: 0,
   borderRadius: 16,
   minHeight: 'min(680px,92vw)',
-  width: 'min(400px,92vw)',
+  width: Config.imageSize,
   margin: '10px',
   position: 'relative',
   zIndex: 1,
@@ -42,26 +45,9 @@ const Widget = styled('div')(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   [theme.breakpoints.down('sm')]: {
-    width: 'min(400px,92vw)',
+    width: Config.imageSize,
   },
 }));
-
-const CoverImage = styled('div')({
-  height: 'min(400px,92vw)',
-  width: 'min(400px,92vw)',
-  objectFit: 'cover',
-  overflow: 'hidden',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  flexShrink: 0,
-  borderRadius: 16,
-  backgroundColor: 'rgba(0,0,0,0.08)',
-  '& > img': {
-    width: '100%',
-    height: '100%',
-  },
-});
 
 export function MusicPlayer() {
   const theme = useTheme();
@@ -153,9 +139,7 @@ export function MusicPlayer() {
               </IconButton>
             </Grid>
           </Grid>
-          <CoverImage>
-            <Image src={currentTrack?.path} size="large" />
-          </CoverImage>
+          <BackgroundImage url={currentTrack?.path} />
           {loading ? <LoadingGif /> : renderPlayer()}
           <Box sx={{ mt: 1.5, minWidth: 0, width: '100%', minHeight: '90px' }}>
             <Mp3Info mp3={currentTrack} compact={true} onSearch={onSearch} />
@@ -364,3 +348,4 @@ export function MusicPlayer() {
     );
   }
 }
+
