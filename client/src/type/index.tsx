@@ -32,3 +32,8 @@ export type BucketType = {
   doc_count: number;
   path: string;
 };
+
+
+export type ChangePlaylistProps = {
+  changePlaylist: (list: Mp3[], index: number, label: string) => null;
+};

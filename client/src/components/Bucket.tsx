@@ -12,7 +12,7 @@ const _DEBOUNCETIMEOUT = 1000;
 const classes = {
   container: {
     minHeight: '150px',
-    maxHeight: '375px',
+    maxHeight: '98vh',
     marginTop: Config.spacings.small,
   },
 };
@@ -20,12 +20,11 @@ const classes = {
 type BucketProps = {
   data: BucketType[];
   vignetsSize: number;
-  onSelect: (label: string) => null;
+  onSelect: (label: string) => void;
 };
 
 export default function Bucket({ data, vignetsSize = 200, onSelect }: any) {
   const isData = !!data && data?.length > 0;
- 
 
   const [selection, setSelection] = useState<string[]>([]);
 

@@ -29,7 +29,7 @@ type ButtonBGImageProps = {
 
 export default function ButtonBGImage({ src, id, size, label, colorFromLabel = false, onClick }: ButtonBGImageProps) {
   const c = colorFromLabel ? label?.[0] : extractInfoFromPath(src)?.filename?.[0] || label?.[0];
-   
+
   return (
     <ButtonBase
       onClick={() => onClick(label)}
@@ -46,10 +46,15 @@ export default function ButtonBGImage({ src, id, size, label, colorFromLabel = f
           width: '100% !important', // Overrides inline-style
           height: 100,
         },
+        '& img': {
+          opacity: 0.7,
+        },
         '&:hover': {
-          '& .MuiImageBackdrop-root': {
+          '& img': {
             opacity: 1,
+            // transform: "rotate(-8deg)"
           },
+          boxShadow: '0px 0px 15px white',
         },
         overflow: 'hidden',
       })}
@@ -66,7 +71,7 @@ export default function ButtonBGImage({ src, id, size, label, colorFromLabel = f
           transform: 'rotate(9deg)',
         }}
       >
-        <Image src={src} size="medium"/>
+        <Image src={src} size="medium" />
       </Box>
     </ButtonBase>
   );

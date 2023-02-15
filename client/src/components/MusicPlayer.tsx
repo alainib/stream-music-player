@@ -14,9 +14,9 @@ import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import LoadingGif from './widgets/LoadingGif';
 import { PlayListWithModal, PlayList } from './PlayList';
-import { SearchBucketsWithModal, SearchBuckets } from './SearchBuckets';
+import { SearchWithModal, Search } from './Search';
+
 import Mp3Info from './Mp3Info';
-import Image from './widgets/Image';
 import BackgroundImage from './widgets/BackgroundImage';
 import { HistoryPlaylist, addListToHistory } from './widgets/HistoryPlaylist';
 import AudioPlayer from './AudioPlayer';
@@ -28,12 +28,10 @@ import Config from '../Config';
 import { Mp3, newMp3 } from '../type';
 import { shuffleArray } from '../tools';
 
- 
-
 const Widget = styled('div')(({ theme }) => ({
   padding: 16,
   paddingTop: 0,
-  borderRadius: 16,
+  borderRadius: '20px',
   minHeight: 'min(680px,92vw)',
   width: Config.imageSize,
   margin: '10px',
@@ -63,7 +61,7 @@ export function MusicPlayer() {
 
   const { showModalPlaylist, setModalShowPlaylist } = useModalPlaylistContext();
   const [showPlaylist, setShowPlaylist] = useLocalStorage('showPlaylist', true);
-  const [showSearchBuckets, setShowSearchBuckets] = useLocalStorage('showSearchBuckets', false);
+  const [showSearch, setShowSearch] = useLocalStorage('showSearch', false);
 
   useEffect(() => {
     if (list?.length < 1) {
@@ -96,7 +94,7 @@ export function MusicPlayer() {
           loadMore={handleLoadMore}
           onSearch={onSearch}
         />
-        <SearchBucketsWithModal changePlaylist={handleListChange} />
+        <SearchWithModal changePlaylist={handleListChange} />
         {memoizedPlayerRender}
       </Box>
     );
@@ -106,7 +104,7 @@ export function MusicPlayer() {
         <div>{memoizedPlayerRender}</div>
 
         <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
-          {showPlaylist && !showSearchBuckets && (
+          {showPlaylist && !showSearch && (
             <PlayList
               currentTrack={currentTrack}
               list={list}
@@ -115,7 +113,7 @@ export function MusicPlayer() {
               onSearch={onSearch}
             />
           )}
-          {showSearchBuckets && !showPlaylist && <SearchBuckets changePlaylist={handleListChange} />}
+          {showSearch && !showPlaylist && <Search changePlaylist={handleListChange} />}
         </Box>
       </Box>
     );
@@ -127,7 +125,7 @@ export function MusicPlayer() {
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
           <Grid container direction="row" justifyContent="space-between" alignItems="center">
             <Grid item>
-              <IconButton aria-label="next song" onClick={handleShowSearchBuckets} id="loadMore" sx={{ zIndex: 1 }}>
+              <IconButton aria-label="next song" onClick={handleShowSearch} id="loadMore" sx={{ zIndex: 1 }}>
                 <ManageSearchIcon fontSize="large" htmlColor={Config.colors.lightgray} />
               </IconButton>
             </Grid>
@@ -149,12 +147,12 @@ export function MusicPlayer() {
     );
   }
 
-  function handleShowSearchBuckets() {
+  function handleShowSearch() {
     if (isMobile) {
       setModalShowPlaylist(false);
     } else {
       setShowPlaylist(false);
-      setShowSearchBuckets(true);
+      setShowSearch(true);
     }
   }
 
@@ -163,7 +161,7 @@ export function MusicPlayer() {
       setModalShowPlaylist(true);
     } else {
       setShowPlaylist(true);
-      setShowSearchBuckets(false);
+      setShowSearch(false);
     }
   }
 
@@ -176,11 +174,10 @@ export function MusicPlayer() {
   }
 
   async function onSearch(search: string, field: string) {
-    console.log({ search, field });
     setLoading(true);
     const resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getmusicof', filters: { [field]: [search] } });
 
-    setListToHistory(list, history);
+    setListToHistory(list, field + ': ' + search, history);
     _setList(resDatas);
     setLoading(false);
 
@@ -190,7 +187,6 @@ export function MusicPlayer() {
   async function initRandomMusic() {
     setLoading(true);
     const res = await runQuery({ typeOfQuery: 'get', url: '/api/getrandommusic' });
-    console.log(res);
     _setList(res);
     handleTrackChange(0);
     setLoading(false);
@@ -219,9 +215,9 @@ export function MusicPlayer() {
   }
 
   // change the playlist when mp3 are choosed from facets search
-  function handleListChange(newlist: Mp3[], index: number, addToHistory: boolean = true) {
+  function handleListChange(newlist: Mp3[], index: number, label: string, addToHistory: boolean = true) {
     if (addToHistory) {
-      setListToHistory(list, history);
+      setListToHistory(newlist, label, history);
     }
     _setList(newlist);
     handleTrackChange(index);
@@ -262,8 +258,8 @@ export function MusicPlayer() {
     setList(shuffleArray(list));
   }
 
-  function setListToHistory(list: Mp3[], history: []) {
-    setHistory(addListToHistory(list, history));
+  function setListToHistory(list: Mp3[], label: string, history: []) {
+    setHistory(addListToHistory(list, label, history));
   }
 
   function renderAudio() {
@@ -348,4 +344,3 @@ export function MusicPlayer() {
     );
   }
 }
-

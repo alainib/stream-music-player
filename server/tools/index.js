@@ -11,7 +11,7 @@ extractInfoFromPath(fullpath)
 
 // extract filename, fullpath and pathToParentFolder from a complete path
 exports.extractInfoFromPath = (fullpath) => {
-
+  fullpath = fullpath.toLowerCase();
   let tmp, filename, pathToParentFolder;
   if (!!fullpath) {
     tmp = fullpath.split("/");
@@ -29,8 +29,8 @@ exports.createId = (path) => {
 
 exports.recScanDir = recScanDir;
 
-async function recScanDir(dir, callbackFct, fileList = []) {
-  console.log('recScanDir ' + dir)
+async function recScanDir(dir, callbackFct, toLowerCase = false, fileList = []) {
+
   const files = await fse.readdir(dir);
 
   for (const filename of files) {
@@ -39,9 +39,12 @@ async function recScanDir(dir, callbackFct, fileList = []) {
     } else {
       let _path = path.join(dir, filename);
       const stat = await fse.stat(_path);
-      if (stat.isDirectory())
-        await recScanDir(_path, callbackFct, fileList);
-      else {
+      if (stat.isDirectory()) {
+        if (toLowerCase && _path.replace(config.musicSrcPath, "") !== _path.replace(config.musicSrcPath, "").toLowerCase()) {
+          fse.rename(_path, _path.toLowerCase());
+        }
+        await recScanDir(_path, callbackFct, toLowerCase, fileList);
+      } else {
         await callbackFct({path: _path, dir, filename});
       }
     }

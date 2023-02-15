@@ -1,7 +1,9 @@
 import './App.css';
-import { styled, useTheme } from '@mui/material/styles';
+import { styled, ThemeProvider } from '@mui/material/styles';
 import { MusicPlayer } from './components/MusicPlayer';
 import { ModalPlaylistContextProvider } from './context/PlaylistContext';
+
+import { theme } from './theme';
 
 const WallPaper = styled('div')({
   position: 'absolute',
@@ -10,7 +12,9 @@ const WallPaper = styled('div')({
   top: 0,
   left: 0,
   overflow: 'hidden',
-  background: 'rgb(55, 58, 87)',
+  background: 'url(../blue-gradients.020-wh.jpg) top center/cover no-repeat fixed ',
+});
+/*background: '#171717',  
   transition: 'all 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275) 0s',
   '&:before': {
     content: '""',
@@ -32,18 +36,16 @@ const WallPaper = styled('div')({
     background: 'radial-gradient(at center center, rgb(112, 73, 93) 0%, rgba(112, 73, 93, 0) 70%)',
     transform: 'rotate(30deg)',
   },
-});
+  */
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <ModalPlaylistContextProvider>
-          <MusicPlayer />
-        </ModalPlaylistContextProvider>
-        <WallPaper />
-      </header>
-    </div>
+    <ThemeProvider theme={theme}>
+      <ModalPlaylistContextProvider>
+        <MusicPlayer />
+      </ModalPlaylistContextProvider>
+      <WallPaper id="wallpaper" />
+    </ThemeProvider>
   );
 }
 

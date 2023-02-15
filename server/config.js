@@ -169,6 +169,7 @@ const config = {
   musicSrcPath: "/Volumes/Multimedia/music",
   // path to local music when External storage cannot be reached 
   localSrcPath: "./public_music",
+  staticFileIp:"http://78.202.14.12:3001/",
   staticDatas: useStaticDatas ? staticDatas : null,
   useStaticDatas
 };

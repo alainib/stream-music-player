@@ -1,17 +1,32 @@
 const path = require("path");
 const {extractInfoFromPath, recScanDir} = require('../tools/index.js');
-
+const fse = require("fs-extra");
 const musicSrcPath = path.join("/Volumes/Multimedia/music");
 
+const config = require('../config.js');
 
 
 async function scanFullDirectory(srcPath) {
-  await recScanDir(srcPath, callbackFct);
+  await recScanDir(srcPath, callbackFct, true);
   console.log("scan finished");
 }
 
 scanFullDirectory(musicSrcPath);
 
+
+// rename Folder.jpg to folder.jpg
+function callbackFct({filename, path, dir}) {
+  if ( filename.replace(config.musicSrcPath, "") !==  filename.replace(config.musicSrcPath, "").toLowerCase()) {
+    try {
+      console.log('.');
+      fse.rename(path, extractInfoFromPath(path)?.pathToParentFolder + "/" + filename.toLowerCase());
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+}
+
+/*
 
 // rename Folder.jpg to folder.jpg
 function callbackFct({filename, path, dir}) {
@@ -29,3 +44,4 @@ function callbackFct({filename, path, dir}) {
     }
   }
 }
+*/

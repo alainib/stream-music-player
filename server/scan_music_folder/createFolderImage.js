@@ -6,7 +6,7 @@ const {createId, recScanDir} = require('../tools/index.js');
 const config = require('../config.js');
 
 async function scanFullDirectory(srcPath) {
-  await recScanDir(srcPath, callbackFct);
+  await recScanDir(srcPath, callbackFct,false);
   console.log("resize finished");
 }
 

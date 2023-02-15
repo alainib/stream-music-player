@@ -1,24 +1,9 @@
-const local_api_path = "localhost:3001";
-const distant_api_path = "82.66.14.12:1002";
 
-const useDistante = false;
 
-let api_path = "http://";
-let static_path = "http://";
 
-if (useDistante) {
-  api_path += distant_api_path;
-  static_path += distant_api_path;
-} else if (window.location.hostname === "localhost") {
-  api_path += local_api_path;
-  static_path += local_api_path;
-} else {
-  api_path += window.location.host;
-  static_path += window.location.host;
-}
+let api_path = "http://" + window.location.host + "/api";
+let static_path = "http://78.202.14.12:3001/static";
 
-api_path += "/api";
-static_path += "/static";
 
 const fontbasesize = 16;
 
@@ -26,6 +11,7 @@ export default {
   api_path,
   static_path,
   imageSize: 'min(400px,92vw)',
+  windowRatioSize : window.innerWidth < 600 ? 100 : 125,
   spacings: {
     verytiny: "3px",
     tiny: "5px",
@@ -73,4 +59,11 @@ export default {
     black: "#000000",
 
   },
+  const: {
+    all: 'racine',
+    genres: 'genre',
+    artists: 'artist',
+    albums: 'album',
+    mp3: 'mp3',
+  }
 };

@@ -17,7 +17,7 @@ import LoadingGif from './widgets/LoadingGif';
 import Mp3Info from './Mp3Info';
 import ListContainer from './widgets/ListContainer';
 import { Mp3 } from '../type';
-import { pathToFolderImageFromPath, scrollToAnchor } from '../tools';
+import { pathToFolderImageFromPath, scrollToAnchor, upperFirstLetter } from '../tools';
 import useMediaQueries from '../hooks/useMediaQueries';
 import { useModalPlaylistContext } from '../context/PlaylistContext';
 import Config from '../Config';
@@ -30,7 +30,7 @@ const PlaylistFixedContainer = styled(Box)(({ theme }) => ({
   zIndex: 2,
   backgroundColor: 'rgba(69,70,72,0.7)',
   backdropFilter: 'blur(40px)',
-  borderRadius: 16,
+  borderRadius: '20px',
   padding: 10,
   // width: 'min(380px,92vw)',
 }));
@@ -39,7 +39,7 @@ type PlayListProps = {
   list: Mp3[];
   currentTrack?: Mp3;
   onSearch?: (s: string, type: string) => Promise<null>;
-  onTrackChange: (arg: number) => null;
+  onTrackChange: (i: number) => null;
   loadMore?: () => null;
 };
 
@@ -117,7 +117,7 @@ export function PlayList({ list, currentTrack, onTrackChange, loadMore, onSearch
   );
 }
 
-type ChangePlaylist = (list: Mp3[], index: number) => null;
+type ChangePlaylist = (list: Mp3[], index: number, label: string) => null;
 type PlayListQueryProps = {
   filters: object;
   changePlaylist: ChangePlaylist;
@@ -147,9 +147,22 @@ export function PlayListWithQuery({ filters, changePlaylist }: PlayListQueryProp
     return null;
   }
 
+  let labels: string[] = [];
+  [Config.const.genres, Config.const.artists, Config.const.albums].map((t: string) => {
+    //@ts-ignore
+    if (filters[t]?.length > 0) {
+      //@ts-ignore
+      labels = [...labels, ...filters[t]];
+    }
+  });
+
   return (
     <Box id="PlayListWithQuery">
-      {loading ? <LoadingGif /> : <PlayList list={list} onTrackChange={(index: number) => changePlaylist(list, index)} />}
+      {loading ? (
+        <LoadingGif />
+      ) : (
+        <PlayList list={list} onTrackChange={(index: number) => changePlaylist(list, index, labels.join(', '))} />
+      )}
     </Box>
   );
 }

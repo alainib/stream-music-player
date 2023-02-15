@@ -94,6 +94,52 @@ router.post('/api/getaggs', async function (req, res) {
   }
 });
 
+router.post('/api/search', async function (req, res) {
+  const {filters: {value}} = req.body;
+
+  try {
+    const _album = `*${value}*`;
+    const _title = `*${value}*`;
+
+    const response = await instance.post(config.elasticIndexUrl, {
+      "query": {
+        "bool": {
+          "should": [
+            {"wildcard": {"album.keyword": {"value": _album}}},
+            {"wildcard": {"title.keyword": {"value": _title}}}
+          ]
+        }
+      },
+      "aggs": {
+        "album": {
+          "filter": {"wildcard": {"album.keyword": {"value": _album}}},
+          "aggs": {
+            "names": {
+              "terms": {
+                "size": 10,
+                "field": "album.keyword_not_normalized"
+              },
+              aggs: _pathSubAggs
+            }
+          }
+        }
+      },
+      "_source": {"includes": ["title", "album", "path"]},
+      "size": 15
+    });
+
+
+
+    res.status(200).json({
+      album: response.data?.aggregations?.album?.names?.buckets.map(e => {return { key: e.key, path: e.path?.buckets?.[0]?.key}}),
+      hits: cleanHits(response.data)
+    })
+
+  } catch (err) {
+    logError(err)
+    res.status(500).json({message: err});
+  }
+});
 
 
 router.post('/api/getmusicof', async function (req, res) {
@@ -175,50 +221,17 @@ function createQueryFromFilters(filters) {
   return query
 }
 
-function createAggs(filters) {
-  // subaggs to get path for image
-  const _subaggs = {
-    "path": {
-      "terms": {
-        "size": 1,
-        "field": "path.keyword"
-      }
-    }
-  };
-
-  const _aggs = {
-    /* "titre": {        "terms": {             "size": 25,           "field": "titre.keyword_not_normalized"          }        },*/
-    "album": {
-      "terms": {
-        "size": 500,
-        "field": "album.keyword_not_normalized",
-        "order": {
-          "_key": "asc"
-        }
-      },
-      aggs: _subaggs
-    },
-    "genre": {
-      "terms": {
-        "size": 150,
-        "field": "genre.keyword_not_normalized",
-        "order": {
-          "_key": "asc"
-        }
-      },
-      aggs: _subaggs
-    },
-    "artist": {
-      "terms": {
-        "size": 2500,
-        "field": "artist.keyword_not_normalized",
-        "order": {
-          "_key": "asc"
-        }
-      },
-      aggs: _subaggs
+// subaggs to get path for image
+const _pathSubAggs = {
+  "path": {
+    "terms": {
+      "size": 1,
+      "field": "path.keyword"
     }
   }
+};
+
+function createAggs(filters) {
 
 
   return {
@@ -230,7 +243,7 @@ function createAggs(filters) {
           "_key": "asc"
         }
       },
-      aggs: _subaggs
+      aggs: _pathSubAggs
     }
   }
 
@@ -254,7 +267,7 @@ function cleanHits(responseData) {
     .map((elem) => ({
       id: elem._id || elem.id,
       ...elem?._source,
-      path: cleanFilePath(elem?._source?.path),
+      path: cleanFilePath(elem?._source?.path.toLowerCase()),
     }));
 }
 
