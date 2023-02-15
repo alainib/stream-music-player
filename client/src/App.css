@@ -36,3 +36,19 @@
     transform: rotate(360deg);
   }
 }
+
+audio::-webkit-media-controls-panel {
+  background-color: white;
+}
+
+audio::-webkit-media-controls-time-remaining-display {
+  display: none;
+}
+
+/*
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-panel {
+  background-color: dimgrey;
+  color: dimgrey;
+}
+*/
