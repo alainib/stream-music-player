@@ -41,24 +41,18 @@ router.get('/api/test', async function (req, res) {
 });
 
 router.get('/api/getrandommusic', async function (req, res) {
-  if (config.useStaticDatas) {
-    res.status(200).json(config.staticDatas);
-  } else {
-    try {
+  try {
+    const response = await instance.post(config.elasticIndexUrl, {
+      "size": 15,
+      "query": {"function_score": {"query": {"match_all": {}}, "random_score": {}}}
+    });
 
-      const response = await instance.post(config.elasticIndexUrl, {
-        "size": 15,
-        "query": {"function_score": {"query": {"match_all": {}}, "random_score": {}}}
-      });
+    res.status(200).json(cleanHits(response.data))
 
-      res.status(200).json(cleanHits(response.data))
-
-    } catch (err) {
-      logError(err)
-      res.status(500).json({message: err});
-    }
+  } catch (err) {
+    logError(err)
+    res.status(500).json({message: err});
   }
-
 });
 
 
@@ -131,7 +125,7 @@ router.post('/api/search', async function (req, res) {
 
 
     res.status(200).json({
-      album: response.data?.aggregations?.album?.names?.buckets.map(e => {return { key: e.key, path: e.path?.buckets?.[0]?.key}}),
+      album: response.data?.aggregations?.album?.names?.buckets.map(e => {return {key: e.key, path: e.path?.buckets?.[0]?.key}}),
       hits: cleanHits(response.data)
     })
 
@@ -215,8 +209,6 @@ function createQueryFromFilters(filters) {
       "must": must
     }
   };
-
-  console.log(JSON.stringify(query, null, 2));
 
   return query
 }

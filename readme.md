@@ -15,12 +15,10 @@ the stack is composed of 3 parts : Elastic, server & front
 Files in server's folder are
 
 - `app.js` : the file started by nodeJs, who serve static files & create API also
-- `api.js` : the API queries are listened here and are made here to elasticSearch
-- `public_music` : a little set of various music for test only when NAS volume cannot be reached
+- `api.js` : the API queries are listened here and are made here to elasticSearch 
 - `scan_music_folder` : set of various scripts
   - `scan.js` : this script scan the `config.musicSrcPath` path and write all music info into `output.ndjson` file ( title album artist genre path)
   - `createFolderImage.js` : rename Folder.jpg to folder.jpg & create jpg vignets for very fast preview
-  - `localCopy.js` : take staticDatas from config with path and copy them inside `public_music` folder
 
 now we need to scan the folder to create the output.ndjson, setup `musicSrcPath` in `../config.js` then run the following command, we import the file later when kibana will be ready
 
