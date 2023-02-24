@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { styled } from '@mui/material/styles';
-import { Box, IconButton, Button, Modal } from '@mui/material';
-
-import Config from '../../Config';
+import { Box, IconButton, Button, Modal, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import HistoryIcon from '@mui/icons-material/History';
+import Config from '../../Config';
+import { maxStringLength } from '../../tools';
 
 import { Mp3 } from '../../type';
 
@@ -29,6 +30,9 @@ const classes = {
     width: '100%',
     marginBottom: '15px',
   },
+  marginLeft10: {
+    marginLeft: '10px',
+  },
 };
 
 const Label = styled('span')(({ theme }) => ({}));
@@ -36,9 +40,10 @@ const Label = styled('span')(({ theme }) => ({}));
 type HistoryPlaylistProps = {
   history: [{ list: []; label: string }];
   changePlaylist: (newlist: Mp3[], index: number, label: string, addToHistory: boolean) => null;
+  removeListFromHistory: (index: number) => null;
 };
 
-export function HistoryPlaylist({ history, changePlaylist }: HistoryPlaylistProps) {
+export function HistoryPlaylist({ history, changePlaylist, removeListFromHistory }: HistoryPlaylistProps) {
   const [index, setIndex] = useState<number>(history?.length ? history.length - 1 : 0);
 
   const [open, setOpen] = useState(false);
@@ -75,7 +80,30 @@ export function HistoryPlaylist({ history, changePlaylist }: HistoryPlaylistProp
               <CloseIcon fontSize="medium" htmlColor={Config.colors.lightgray} />
             </IconButton>
           </Box>
-          {history.map((elem, index) => (
+          <List>
+            {history.map((elem, index) => (
+              <ListItem disablePadding key={elem?.label + index}>
+                <ListItemButton>
+                  <ListItemText
+                    primary={maxStringLength(elem?.label, 70) + ' (' + elem?.list?.length + ')'}
+                    onClick={() => {
+                      handleClose();
+                      setIndex(index);
+                    }}
+                  />
+                  <ListItemIcon sx={classes.marginLeft10} onClick={() => removeListFromHistory(index)}>
+                    <DeleteOutlineIcon />
+                  </ListItemIcon>
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Modal>
+    </Box>
+  );
+  {
+    /*history.map((elem, index) => (
             <Box key={elem?.label}>
               <Button
                 onClick={() => {
@@ -83,14 +111,11 @@ export function HistoryPlaylist({ history, changePlaylist }: HistoryPlaylistProp
                   setIndex(index);
                 }}
               >
-                {elem?.label}
+                {elem?.label + ' (' + elem?.list?.length + ')'}
               </Button>
             </Box>
-          ))}
-        </Box>
-      </Modal>
-    </Box>
-  );
+              ))*/
+  }
 }
 
 export function addListToHistory(list: Mp3[], label: string, history: []) {
@@ -108,5 +133,5 @@ export function addListToHistory(list: Mp3[], label: string, history: []) {
       return history;
     }
   }
-  return [...history, { label, list }];
+  return [...history.slice(0, 9), { label, list }];
 }

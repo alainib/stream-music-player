@@ -14,16 +14,16 @@ export function newMp3() {
 }
 
 export type BucketsType = {
-  genre: { buckets: BucketType[] };
-  artist: { buckets: BucketType[] };
-  album: { buckets: BucketType[] };
+  genre: BucketType[];
+  artist: BucketType[];
+  album: BucketType[];
 };
 
 export function newBuckets() {
   return {
-    genre: { buckets: [] },
-    artist: { buckets: [] },
-    album: { buckets: [] },
+    genre: [],
+    artist: [],
+    album: [],
   };
 }
 
@@ -33,7 +33,12 @@ export type BucketType = {
   path: string;
 };
 
-
 export type ChangePlaylistProps = {
   changePlaylist: (list: Mp3[], index: number, label: string) => null;
+};
+
+export type Filters = {
+  title?: string | string[];
+  artist?: string | string[];
+  album?: string | string[];
 };

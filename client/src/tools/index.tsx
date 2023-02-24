@@ -18,6 +18,16 @@ export function upperFirstLetter(str: string) {
   return _str.charAt(0).toUpperCase() + _str.slice(1).toLowerCase();
 }
 
+// return the first maxLength char of a string
+export function maxStringLength(str: string, maxLength: number = 100) {
+  const word = cleanString(str);
+  if (word && word.length > maxLength) {
+    return word.slice(0, maxLength) + '...';
+  } else {
+    return word;
+  }
+}
+
 /**
  * get a full path of an mp3 and return the fullpath to it's folder compressed image ( 400x400 px)
  * @param string path

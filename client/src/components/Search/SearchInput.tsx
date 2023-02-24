@@ -6,7 +6,7 @@ import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 
 import Config from '../../Config';
 import useDebounce from '../../hooks/useDebounce';
-import { ChangePlaylistProps, BucketType, Mp3 } from '../../type';
+import { ChangePlaylistProps, BucketType, Mp3, Filters } from '../../type';
 import Bucket from '../Bucket';
 
 import { PlayListWithQuery, PlayList } from '../PlayList';
@@ -46,6 +46,7 @@ const classes = {
 
 type SearchResultType = {
   album: BucketType[];
+  artist: BucketType[];
   hits: Mp3[];
 } | null;
 
@@ -61,10 +62,10 @@ export default function SearchInput({ hideOther, changePlaylist }: SearchInputPr
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  // list of Buckets for title and album for user input search only, browsing buckets in handled in SearchBuckets
+  // list of Buckets for title, artist and album for user input search only, browsing buckets is handled in SearchBuckets
   const [searchResult, setSearchResult] = useState<SearchResultType | null>(null);
 
-  const [album, setAlbum] = useState<string[] | null>(null);
+  const [filters, setFilters] = useState<Filters>({});
 
   useEffect(() => {
     hideOther(!!debouncedInput && debouncedInput?.length > 1);
@@ -80,15 +81,20 @@ export default function SearchInput({ hideOther, changePlaylist }: SearchInputPr
     if (!loading) {
       setLoading(true);
     }
+    setFilters({});
     let resDatas;
     resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/search', filters: { value: debouncedInput } });
     setSearchResult(resDatas);
-    console.log(resDatas);
 
     setLoading(false);
 
     return null;
   }
+
+  const filterIsNull = !(
+    (Array.isArray(filters?.album) && filters?.album.length > 0) ||
+    (Array.isArray(filters?.artist) && filters?.artist.length > 0)
+  );
 
   return (
     <Box>
@@ -100,13 +106,13 @@ export default function SearchInput({ hideOther, changePlaylist }: SearchInputPr
   function renderInput() {
     return (
       <Box sx={classes.container}>
-        <IconButton disabled={album === null} aria-label="previous" onClick={handlePrevious} sx={{ zIndex: 1 }}>
-          <ArrowLeftIcon fontSize="large" htmlColor={album === null ? Config.colors.gray : Config.colors.lightgray} />
+        <IconButton disabled={filterIsNull} aria-label="previous" onClick={handlePrevious} sx={{ zIndex: 1 }}>
+          <ArrowLeftIcon fontSize="large" htmlColor={filterIsNull ? Config.colors.gray : Config.colors.lightgray} />
         </IconButton>
         <Box sx={classes.subContainer}>
           <InputBase
             onChange={handleOnChangeInputValue}
-            placeholder="titre ou artist"
+            placeholder="titre, artist ou album"
             fullWidth={true}
             value={inputValue}
             sx={classes.inputBase}
@@ -126,8 +132,8 @@ export default function SearchInput({ hideOther, changePlaylist }: SearchInputPr
   }
 
   function renderResults() {
-    if (!!album) {
-      return <PlayListWithQuery filters={{ album }} changePlaylist={changePlaylist} />;
+    if (!filterIsNull) {
+      return <PlayListWithQuery filters={filters} changePlaylist={changePlaylist} />;
     }
     if (!!debouncedInput && debouncedInput?.length > 1) {
       return (
@@ -140,15 +146,27 @@ export default function SearchInput({ hideOther, changePlaylist }: SearchInputPr
               <Bucket data={searchResult?.album} onSelect={handleSelectAlbum} vignetsSize={Config.windowRatioSize} />
             </>
           )}
-          <Typography variant="h5" sx={classes.category}>
-            Titres :
-          </Typography>
-          {searchResult?.hits && (
-            <PlayList
-              list={searchResult?.hits}
-              onTrackChange={handleTrackChange}
-              //onSearch={onSearch}
-            />
+
+          {searchResult && searchResult?.artist?.length > 0 && (
+            <>
+              <Typography variant="h5" sx={classes.category}>
+                Artistes :
+              </Typography>
+              <Bucket data={searchResult?.artist} onSelect={handleSelectArtist} vignetsSize={Config.windowRatioSize} />
+            </>
+          )}
+
+          {searchResult?.hits && searchResult?.hits?.length > 0 && (
+            <>
+              <Typography variant="h5" sx={classes.category}>
+                Titres :
+              </Typography>
+              <PlayList
+                list={searchResult?.hits}
+                onTrackChange={handleTrackChange}
+                //onSearch={onSearch}
+              />
+            </>
           )}
         </Box>
       );
@@ -158,12 +176,15 @@ export default function SearchInput({ hideOther, changePlaylist }: SearchInputPr
   }
 
   function handleSelectAlbum(props: string[]) {
-    console.log(props);
-    setAlbum(props);
+    setFilters({ album: props });
+  }
+
+  function handleSelectArtist(props: string[]) {
+    setFilters({ artist: props });
   }
 
   function handlePrevious() {
-    setAlbum(null);
+    setFilters({});
   }
 
   function handleTrackChange(i: number) {

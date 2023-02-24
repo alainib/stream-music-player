@@ -15,10 +15,12 @@ const instance = axios.create({
   headers: {Accept: "application/json", "Content-Type": "application/json"}
 })
 
+function clj(props) {
+  console.log(JSON.stringify(props, null, 2));
+}
+
 function logError(error) {
-  function clj(props) {
-    console.log(JSON.stringify(props, null, 2));
-  }
+
   if (error.response) {
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx
@@ -90,41 +92,88 @@ router.post('/api/getaggs', async function (req, res) {
 
 router.post('/api/search', async function (req, res) {
   const {filters: {value}} = req.body;
+  clj(req.body.filters)
 
   try {
-    const _album = `*${value}*`;
-    const _title = `*${value}*`;
 
-    const response = await instance.post(config.elasticIndexUrl, {
-      "query": {
-        "bool": {
-          "should": [
-            {"wildcard": {"album.keyword": {"value": _album}}},
-            {"wildcard": {"title.keyword": {"value": _title}}}
-          ]
-        }
-      },
-      "aggs": {
-        "album": {
-          "filter": {"wildcard": {"album.keyword": {"value": _album}}},
-          "aggs": {
-            "names": {
-              "terms": {
-                "size": 10,
-                "field": "album.keyword_not_normalized"
-              },
-              aggs: _pathSubAggs
-            }
+
+    const valueStartWith = {
+      title: value.startsWith("title:"),
+      artist: value.startsWith("artist:"),
+      album: value.startsWith("album:"),
+      value: "*" + value.replace("artist:", "").replace("album:", "").replace("title:", "") + "*"
+    }
+
+    let should = [];
+    let aggs = {};
+    let size = 15; // if we search for a specific album or title we set it to 0 so no hits are returned ( = tilte )
+
+    function addArtistToAggs() {
+      aggs["artist"] = {
+        "filter": {"wildcard": {"artist.keyword": {"value": valueStartWith.value}}},
+        "aggs": {
+          "names": {
+            "terms": {
+              "size": 10,
+              "field": "artist.keyword_not_normalized"
+            },
+            aggs: _pathSubAggs
           }
         }
+      };
+    }
+    function addAlbumToAggs() {
+      aggs["album"] = {
+        "filter": {"wildcard": {"album.keyword": {"value": valueStartWith.value}}},
+        "aggs": {
+          "names": {
+            "terms": {
+              "size": 10,
+              "field": "album.keyword_not_normalized"
+            },
+            aggs: _pathSubAggs
+          }
+        }
+      }
+    }
+
+    if (valueStartWith?.artist) {
+      //should.push({"wildcard": {"artist.keyword": {"value": valueStartWith.value}}});
+      size = 0;
+      addArtistToAggs();
+    } else if (valueStartWith?.album) {
+      //should.push({"wildcard": {"album.keyword": {"value": valueStartWith.value}}});
+      size = 0;
+      addAlbumToAggs();
+    } else if (valueStartWith?.title) {
+      should.push({"wildcard": {"title.keyword": {"value": valueStartWith.value}}})
+    } else {
+      should.push({"wildcard": {"artist.keyword": {"value": valueStartWith.value}}});
+      should.push({"wildcard": {"album.keyword": {"value": valueStartWith.value}}});
+      should.push({"wildcard": {"title.keyword": {"value": valueStartWith.value}}});
+      addArtistToAggs();
+      addAlbumToAggs();
+    }
+
+    const query = {
+      "query": {
+        "bool": {
+          "should": should
+        }
       },
+      aggs,
       "_source": {"includes": ["title", "album", "path"]},
-      "size": 15
-    });
+      size
+    };
 
+    clj(query)
 
+    const response = await instance.post(config.elasticIndexUrl, query);
+
+    clj(response.data)
 
     res.status(200).json({
+      artist: response.data?.aggregations?.artist?.names?.buckets.map(e => {return {key: e.key, path: e.path?.buckets?.[0]?.key}}),
       album: response.data?.aggregations?.album?.names?.buckets.map(e => {return {key: e.key, path: e.path?.buckets?.[0]?.key}}),
       hits: cleanHits(response.data)
     })
@@ -133,6 +182,7 @@ router.post('/api/search', async function (req, res) {
     logError(err)
     res.status(500).json({message: err});
   }
+
 });
 
 
@@ -209,7 +259,7 @@ function createQueryFromFilters(filters) {
       "must": must
     }
   };
-
+  clj(query)
   return query
 }
 

@@ -55,7 +55,6 @@ const mobileStyle = { maxWidth: 360 };
 const desktopStyle = {
   width: '100%',
   height: '90vh',
-  overflowY: 'scroll',
   position: 'relative',
   zIndex: 1,
 };

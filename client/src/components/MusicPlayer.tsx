@@ -47,6 +47,10 @@ const Widget = styled('div')(({ theme }) => ({
   },
 }));
 
+const classes = {
+  center: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+};
+
 export function MusicPlayer() {
   const theme = useTheme();
   const { isMobile } = useMediaQueries();
@@ -82,7 +86,7 @@ export function MusicPlayer() {
     }
   }, [list]);
 
-  const memoizedPlayerRender = useMemo(() => renderCurrentPlayer(), [list, currentTrackIndex, currentTrack]);
+  const memoizedPlayerRender = useMemo(() => renderCurrentPlayer(), [list, currentTrackIndex, currentTrack, history]);
 
   if (isMobile) {
     return (
@@ -103,7 +107,7 @@ export function MusicPlayer() {
       <Box id="MusicPlayerComponentDesktop" sx={{ width: '100%', display: 'flex', flex: 1, flexDirection: 'row' }}>
         <div>{memoizedPlayerRender}</div>
 
-        <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)' }}>
+        <Box sx={{ paddingLeft: '15px', width: 'min(85%,1200px)', height: '95vh', overflowY: 'scroll' }}>
           {showPlaylist && !showSearch && (
             <PlayList
               currentTrack={currentTrack}
@@ -129,7 +133,7 @@ export function MusicPlayer() {
                 <ManageSearchIcon fontSize="large" htmlColor={Config.colors.lightgray} />
               </IconButton>
             </Grid>
-            <HistoryPlaylist history={history} changePlaylist={handleListChange} />
+            <HistoryPlaylist history={history} changePlaylist={handleListChange} removeListFromHistory={removeListFromHistory} />
 
             <Grid item>
               <IconButton aria-label="next song" onClick={handleShowPlaylist} id="loadMore" sx={{ zIndex: 1 }}>
@@ -177,7 +181,7 @@ export function MusicPlayer() {
     setLoading(true);
     const resDatas = await runQuery({ typeOfQuery: 'post', url: '/api/getmusicof', filters: { [field]: [search] } });
 
-    setListToHistory(list, field + ': ' + search, history);
+    _addListToHistory(list, field + ': ' + search);
     _setList(resDatas);
     setLoading(false);
 
@@ -217,7 +221,7 @@ export function MusicPlayer() {
   // change the playlist when mp3 are choosed from facets search
   function handleListChange(newlist: Mp3[], index: number, label: string, addToHistory: boolean = true) {
     if (addToHistory) {
-      setListToHistory(newlist, label, history);
+      _addListToHistory(newlist, label);
     }
     _setList(newlist);
     handleTrackChange(index);
@@ -258,8 +262,14 @@ export function MusicPlayer() {
     setList(shuffleArray(list));
   }
 
-  function setListToHistory(list: Mp3[], label: string, history: []) {
+  function _addListToHistory(list: Mp3[], label: string) {
     setHistory(addListToHistory(list, label, history));
+  }
+  function removeListFromHistory(index: number) {
+    const newhistory = structuredClone(history);
+    newhistory.splice(index, 1);
+    setHistory(newhistory);
+    return null;
   }
 
   function renderAudio() {
@@ -270,29 +280,27 @@ export function MusicPlayer() {
     return (
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           m: '15px 0px',
           backgroundColor: 'white',
           borderRadius: '20px',
           width: '100%',
         }}
+        id="renderPlayer"
       >
         <Grid container direction="row" justifyContent="space-around" alignItems="center">
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={classes.center}>
             {renderAudio()}
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={4} sx={classes.center}>
             {renderPreviousTrackButton()}
           </Grid>
 
-          <Grid item xs={4}>
+          <Grid item xs={4} sx={classes.center}>
             <IconButton aria-label="next song" onClick={() => handleShuffleTrack()}>
               <ShuffleIcon fontSize="medium" htmlColor={Config.colors.black} />
             </IconButton>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={4} sx={classes.center}>
             {renderNextTrackButton()}
           </Grid>
         </Grid>

@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 
-import { styled } from '@mui/material/styles';
-
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import HomeIcon from '@mui/icons-material/Home';
 
