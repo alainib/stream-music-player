@@ -5,6 +5,7 @@ const axios = require('axios');
 const config = require('./config.js');
 const {extractInfoFromPath} = require('./tools/index.js');
 
+
 const instance = axios.create({
   baseURL: config.elasticUrl,
   timeout: 15000,

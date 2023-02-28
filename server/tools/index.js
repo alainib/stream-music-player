@@ -1,6 +1,7 @@
 const fse = require("fs-extra");
 const path = require("path");
 const config = require('../config.js');
+const jwt = require('jsonwebtoken');
 
 /*
 usage 
@@ -53,5 +54,14 @@ async function recScanDir(dir, callbackFct, toLowerCase = false, fileList = []) 
 }
 
 
+
+exports.stringStartsWith = (string, prefix) => {
+  return string.includes(prefix)
+}
+
+
+exports.generateAccessToken = (user) => {
+  return jwt.sign(user, config.jwtTokenSecret, {expiresIn: '180d'});
+}
 
 

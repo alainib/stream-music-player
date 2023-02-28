@@ -1,7 +1,12 @@
 import './App.css';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
 import { styled, ThemeProvider } from '@mui/material/styles';
+
+import { Signin } from './components/User/Signin';
 import { MusicPlayer } from './components/MusicPlayer';
 import { ModalPlaylistContextProvider } from './context/PlaylistContext';
+import useLocalStorage from './hooks/useLocalStorage';
 
 import { theme } from './theme';
 
@@ -39,11 +44,13 @@ const WallPaper = styled('div')({
   */
 
 function App() {
+  const [currentUser, setCurrentUser] = useLocalStorage('user', '');
+
+  console.log({ currentUser });
+
   return (
     <ThemeProvider theme={theme}>
-      <ModalPlaylistContextProvider>
-        <MusicPlayer />
-      </ModalPlaylistContextProvider>
+      <ModalPlaylistContextProvider>{currentUser?.accessToken ? <MusicPlayer /> : <Signin />}</ModalPlaylistContextProvider>
       <WallPaper id="wallpaper" />
     </ThemeProvider>
   );

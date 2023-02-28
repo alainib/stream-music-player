@@ -15,7 +15,7 @@ function getStorageValue(key: string, defaultValue: any) {
 /**
  * 
 usage 
-  import { useLocalStorage } from "../useLocalStorage";
+  import useLocalStorage from "../useLocalStorage";
   const [name, setName] = useLocalStorage("name", "");
  */
 export default function useLocalStorage(key: string, defaultValue: any) {
