@@ -37,21 +37,12 @@ export async function runQuery({ url = '', typeOfQuery = 'post', filters = {}, s
   }
 }
 
-export async function deleteTrack(fullpath = '') {
-  const url = '/erasemusic';
-  let status, data;
+export async function deleteTrack(path = '', id = '') {
   try {
-    const response = await instance.post(url, { fullpath }, postConfig);
-
-    status = response.status;
-    data = response.data;
+    const response = await instance.post('/api/erasemusic', { path, id }, postConfig);
+    return response.status === 200;
   } catch (error) {
     console.error(error);
-    status = 404;
   }
-  if (status === 200) {
-    return data;
-  } else {
-    return false;
-  }
+  return false;
 }
