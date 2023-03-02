@@ -53,15 +53,17 @@ async function recScanDir(dir, callbackFct, toLowerCase = false, fileList = []) 
   return true;
 }
 
-
+exports.generateAccessToken = (user) => {
+  return jwt.sign(user, config.jwtTokenSecret, {expiresIn: '180d'});
+}
 
 exports.stringStartsWith = (string, prefix) => {
   return string.includes(prefix)
 }
 
 
-exports.generateAccessToken = (user) => {
-  return jwt.sign(user, config.jwtTokenSecret, {expiresIn: '180d'});
+// check if string contain of element from strings
+// like check if a route include a string 
+exports.stringIsOneOf = (string, strings) => {
+  return strings.some(element => string.includes(element));
 }
-
-

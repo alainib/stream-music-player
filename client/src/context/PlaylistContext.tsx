@@ -29,7 +29,7 @@ export function ModalPlaylistContextProvider({ children }: any) {
  * to use in children class to access to this context
  *
  * usage
- *  import {useModalPlaylistContext} from "../hooks/PlaylistContext"
+ *  import {useModalPlaylistContext} from "../context/PlaylistContext"
  *  const { showModalPlaylist, setModalShowPlaylist } = useModalPlaylistContext();
  */
 export function useModalPlaylistContext() {

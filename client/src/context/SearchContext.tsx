@@ -29,7 +29,7 @@ export function ModalSearchContextProvider({ children }: any) {
  * to use in children class to access to this context
  *
  * usage
- *  import {useModalSearchContext} from "../hooks/SearchContext"
+ *  import {useModalSearchContext} from "../context/SearchContext"
  *  const { showModalSearch, setModalShowSearch } = useModalSearchContext();
  */
 export function useModalSearchContext() {

@@ -10,7 +10,7 @@ import { runQuery } from '../../services/music';
 import Bucket from '../Bucket';
 import { PlayListWithQuery } from '../PlayList';
 
-import useLocalStorage from '../../hooks/useLocalStorage';
+import {useLocalStorage} from '../../hooks/useLocalStorage';
 import { upperFirstLetter } from '../../tools';
 import Config from '../../Config';
 

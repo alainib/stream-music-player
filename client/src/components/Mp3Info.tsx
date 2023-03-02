@@ -1,7 +1,12 @@
-import { ButtonBase, Typography, Grid, Box, Rating } from '@mui/material';
+import React from 'react';
+import { useEventPublisher } from 'use-event-emitter-hook';
+import { ButtonBase, Typography, Grid, Box, Rating, IconButton } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { Mp3 } from '../type';
 import { upperFirstLetter } from '../tools';
 import Config from '../Config';
+import { useUserContext } from '../context/UserContext';
+import { deleteTrack } from '../services/music';
 
 type Mp3InfoProps = {
   mp3: Mp3;
@@ -30,6 +35,12 @@ const classes = {
     display: 'flex',
     flexDirection: 'column',
   },
+  spaceBetween: {
+    display: 'flex',
+    width: '96%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
 };
 
 export default function Mp3Info({ mp3, compact = false, smallText = false, onSearch }: Mp3InfoProps) {
@@ -38,14 +49,21 @@ export default function Mp3Info({ mp3, compact = false, smallText = false, onSea
   const artist = upperFirstLetter(mp3?.artist);
   const genre = upperFirstLetter(mp3?.genre);
 
+  let publisher = useEventPublisher();
+
+  const { user } = useUserContext();
+
   if (compact) {
     return (
       <Box
         id="notcompact"
         sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', flex: 1 }}
       >
-        <Box id="boxTitle" sx={classes.flexStart95}>
-          {renderTitle()}
+        <Box id="boxTitle" sx={classes.spaceBetween}>
+          <Box id="boxTitle" sx={classes.flexStart95}>
+            {renderTitle()}
+          </Box>
+          {renderDeleteButton()}
         </Box>
         <Box id="boxalbum" sx={classes.flexStart95}>
           {renderAlbum()}
@@ -88,7 +106,13 @@ export default function Mp3Info({ mp3, compact = false, smallText = false, onSea
           <Box> {renderRating()}</Box>
         </Grid>
         <Grid id="boxartistc" item xs={4} sx={classes.flexStart95}>
-          <Box> {renderArtist()}</Box>
+          <Box id="boxTitle" sx={classes.spaceBetween}>
+            <Box id="boxTitle" sx={classes.flexStart95}>
+              {renderArtist()}
+            </Box>
+            {renderDeleteButton()}
+          </Box>
+
           <Box> {renderGenre()}</Box>
         </Grid>
       </Grid>
@@ -140,10 +164,29 @@ export default function Mp3Info({ mp3, compact = false, smallText = false, onSea
   function renderButton(s: string, type: string, italic: boolean = false) {
     return (
       <ButtonBase onClick={() => !!onSearch && onSearch(s, type)}>
-        <Typography variant="body2" sx={[classes.titleStyle,classes.styleSub]}>
+        <Typography variant="body2" sx={[classes.titleStyle, classes.styleSub]}>
           {italic ? <i>{s}</i> : s}
         </Typography>
       </ButtonBase>
     );
+  }
+
+  function renderDeleteButton() {
+    if (user?.admin) {
+      return (
+        <IconButton aria-label="next song" onClick={handleDelete}>
+          <DeleteIcon fontSize="small" htmlColor={Config.colors.gray} />
+        </IconButton>
+      );
+    }
+    return null;
+  }
+
+  async function handleDelete() {
+    const succes = await deleteTrack(mp3?.path, mp3?.id);
+    console.log('deleteTrack', succes);
+    if (succes) {
+      publisher('deletemp3', mp3);
+    }
   }
 }

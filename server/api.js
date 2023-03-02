@@ -2,6 +2,8 @@
 var express = require('express');
 var router = express.Router();
 const axios = require('axios');
+
+const fse = require("fs-extra");
 const config = require('./config.js');
 const {extractInfoFromPath} = require('./tools/index.js');
 
@@ -307,28 +309,54 @@ function cleanHits(responseData) {
       }
       return test;
     })
-    .map((elem) => ({
-      id: elem._id || elem.id,
-      ...elem?._source,
-      path: cleanFilePath(elem?._source?.path.toLowerCase()),
-    }));
+    .map((elem) => {
+      console.log(elem)
+      return {
+        ...elem?._source,
+        id: elem._id || elem?._source.id,
+        path: cleanFilePath(elem?._source?.path.toLowerCase()),
+      }
+    });
 }
 
 
 
-/*
-app.post("/api/erasemusic", async function (req, res) {
+router.post("/api/erasemusic", async function (req, res) {
   console.log("erasemusic", req.body);
+  let firstTry = true;
 
-  let {fullpath} = req.body;
+  async function erase() {
+    try {
+      const fullpath = config.musicSrcPath + req.body.path;
+      const elasticId = req.body.id;
+      console.log({fullpath, elasticId});
 
-  const pos = fullpath.indexOf("/static") + "/static".length;
+      const exists = fse.pathExistsSync(fullpath);
+      if (exists) {
+        console.log("path exist !");
+        fse.unlinkSync(fullpath);
+        console.log("file unlinked")
+        const url = `${config.elasticIndexBaseUrl}/_doc/${elasticId}`;
+        await instance.delete(url);
+        console.log("delete from es")
+        res.status(200).end();
+      } else {
+        console.log("path not exist", firstTry);
+        if (firstTry) {
+          firstTry = false;
+          await erase();
+        } else {
+          res.status(401).end();
+        }
+      }
+    } catch (error) {
+      res.status(400).end();
+    }
+  }
 
-  let path = musicSrcPath + fullpath.slice(pos);
+  await erase()
 
-  fse.unlinkSync(path);
-  res.status(200);
 });
-*/
+
 
 module.exports = router;

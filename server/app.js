@@ -7,7 +7,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const jwt = require("jsonwebtoken");
 var express = require('express');
-const {stringStartsWith} = require('./tools/index.js');
+const {stringStartsWith, stringIsOneOf} = require('./tools/index.js');
+const authorised_users = require('./authorised_users.js');
 
 var app = express();
 app.use(bodyParser.json());
@@ -21,6 +22,8 @@ app.set('port', config.apiPort);
 app.options('*', cors()) // enable pre-flight request
 
 
+const adminPaths = ["/api/erasemusic"];
+
 app.use(function (req, res, next) {
 
   console.log("req.originalUrl  " + req.originalUrl);
@@ -33,18 +36,17 @@ app.use(function (req, res, next) {
   res.setHeader("Access-Control-Allow-Headers", "Origin, x-access-token, X-Requested-With, Content-Type, Accept");
   res.setHeader('Access-Control-Allow-Credentials', true);
 
+  const needAdminPrivilege = stringIsOneOf(req.originalUrl, adminPaths)
 
-  if (debug || stringStartsWith(req.originalUrl, "/api/test/") || stringStartsWith(req.originalUrl, "/api/user/") || stringStartsWith(req.originalUrl, "/static/")) {
+  if (stringStartsWith(req.originalUrl, "/api/test/") || stringStartsWith(req.originalUrl, "/api/user/") || stringStartsWith(req.originalUrl, "/static/")) {
     console.log("no check");
-
     next();
-
   } else {
     //get the token from the header if present 
 
     const token = req.headers['x-access-token'];
 
-    console.log("checking token", {token})
+    debug && console.log("checking token", {token})
 
     //if no token found, return response (without going to the next middelware)
     if (!token) {
@@ -58,14 +60,18 @@ app.use(function (req, res, next) {
         if (err) {
           return res.sendStatus(401)
         }
-        console.log(user)
+        debug && console.log(user)
+        // check if this route need admin and user is not admin
+        if (needAdminPrivilege && !authorised_users[user.login].admin) {
+          res.status(401).send("wrong privileges.");
+        }
+
         req.user = user;
         next();
       });
 
     } catch (ex) {
-      console.log("error decoding token")
-      console.log(ex)
+      console.log("error decoding token", ex);
       //if invalid token
       res.status(400).send("Invalid token.");
     }

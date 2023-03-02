@@ -8,22 +8,21 @@ const {generateAccessToken} = require('./tools/index.js');
 
 router.get('/api/user/signin', async function (req, res) {
   console.log("get api/user/signin ",);
-  return res.json({test: "get api signin ok"});
+  return res.status(200).json({test: "get api signin ok"});
 });
 
 
 router.post('/api/user/signin', async function (req, res) {
-  console.log("post /api/user/signin", req.body);
+  console.log("post /api/user/signin; req.body :", req.body);
 
   try {
     const login = req.body.login;
     const password = encryptpass(req.body.password);
-    console.log({login, password})
 
-    if (authorised_users[login] === password) {
-      console.log("login ok")
-      const accessToken = generateAccessToken({login, password});
-      return res.status(200).json({accessToken})
+    if (authorised_users[login].password === password) {
+      console.log("login ok", authorised_users[login]);
+      const accessToken = generateAccessToken({login, password, admin: authorised_users[login]?.admin});
+      return res.status(200).json({accessToken, admin: authorised_users[login]?.admin, login});
     } else {
       console.log("login not ok", {
         login,

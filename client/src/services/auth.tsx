@@ -1,7 +1,7 @@
 import { instance, postConfig } from './axios';
 
 export async function register(props: object) {
-  return await instance.post('/user/signup', props, postConfig);
+  return await instance.post('api/user/signup', props, postConfig);
 }
 
 export async function sigin(props: object) {
@@ -13,6 +13,7 @@ export async function sigin(props: object) {
 
     const { status, data } = await instance.post('api/user/signin', props, postConfig);
     if (status === 200 && data.accessToken) {
+      console.log(data)
       localStorage.setItem('user', JSON.stringify(data));
     }
     return data;

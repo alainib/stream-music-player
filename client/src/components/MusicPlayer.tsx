@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 
+import { useEventSubscriber } from 'use-event-emitter-hook';
 import { styled, useTheme } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -7,11 +8,10 @@ import IconButton from '@mui/material/IconButton';
 
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
-
 import FastForwardRounded from '@mui/icons-material/FastForwardRounded';
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
-
 import ShuffleIcon from '@mui/icons-material/Shuffle';
+
 import LoadingGif from './widgets/LoadingGif';
 import { PlayListWithModal, PlayList } from './PlayList';
 import { SearchWithModal, Search } from './Search';
@@ -21,7 +21,7 @@ import BackgroundImage from './widgets/BackgroundImage';
 import { HistoryPlaylist, addListToHistory } from './widgets/HistoryPlaylist';
 import AudioPlayer from './AudioPlayer';
 import useMediaQueries from '../hooks/useMediaQueries';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useModalPlaylistContext } from '../context/PlaylistContext';
 import { runQuery } from '../services/music';
 import Config from '../Config';
@@ -66,6 +66,13 @@ export function MusicPlayer() {
   const { showModalPlaylist, setModalShowPlaylist } = useModalPlaylistContext();
   const [showPlaylist, setShowPlaylist] = useLocalStorage('showPlaylist', true);
   const [showSearch, setShowSearch] = useLocalStorage('showSearch', false);
+
+  useEventSubscriber('deletemp3', (mp3: Mp3) => handleRemoveMp3(mp3));
+
+  function handleRemoveMp3(mp3: Mp3) {
+    handleNextTrack();
+    setList(list.filter((elem: Mp3) => elem.id !== mp3.id));
+  }
 
   useEffect(() => {
     if (list?.length < 1) {
@@ -129,14 +136,14 @@ export function MusicPlayer() {
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
           <Grid container direction="row" justifyContent="space-between" alignItems="center">
             <Grid item>
-              <IconButton aria-label="next song" onClick={handleShowSearch} id="loadMore" sx={{ zIndex: 1 }}>
+              <IconButton aria-label="search song" onClick={handleShowSearch} id="loadMore" sx={{ zIndex: 1 }}>
                 <ManageSearchIcon fontSize="large" htmlColor={Config.colors.lightgray} />
               </IconButton>
             </Grid>
             <HistoryPlaylist history={history} changePlaylist={handleListChange} removeListFromHistory={removeListFromHistory} />
 
             <Grid item>
-              <IconButton aria-label="next song" onClick={handleShowPlaylist} id="loadMore" sx={{ zIndex: 1 }}>
+              <IconButton aria-label="show playlist" onClick={handleShowPlaylist} id="loadMore" sx={{ zIndex: 1 }}>
                 <QueueMusicIcon fontSize="large" htmlColor={Config.colors.lightgray} />
               </IconButton>
             </Grid>
@@ -250,6 +257,7 @@ export function MusicPlayer() {
     return currentTrackIndex + 1 === list?.length;
   }
   function handleNextTrack() {
+    console.log('handleNextTrack');
     if (!isLastTrack()) {
       handleTrackChange(currentTrackIndex + 1);
     } else {

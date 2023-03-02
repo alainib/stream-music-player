@@ -9035,6 +9035,13 @@ url-parse@^1.5.3:
     querystringify "^2.1.1"
     requires-port "^1.0.0"
 
+use-event-emitter-hook@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/use-event-emitter-hook/-/use-event-emitter-hook-1.2.0.tgz#b6fdfaaafa2f8aa12eb1aba82e35aefb036b1043"
+  integrity sha512-+bsEqg9/XM9hO3B7STVXjj7Y7SIVbdLckF7CMNbvy+N/WpykrZ8tDPTwuKhfpZVhps4BNV/cN7x5X662UoKeyA==
+  dependencies:
+    uuid "^8.3.2"
+
 util-deprecate@^1.0.1, util-deprecate@^1.0.2, util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"

@@ -1,23 +1,15 @@
 import { useState, useEffect } from 'react';
 import { styled } from '@mui/material/styles';
 
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
+import { Grid, Box, IconButton, ListItem, ListItemText, ListItemAvatar, Avatar } from '@mui/material';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import CloseIcon from '@mui/icons-material/Close';
-
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import Divider from '@mui/material/Divider';
-import Avatar from '@mui/material/Avatar';
 
 import LoadingGif from './widgets/LoadingGif';
 import Mp3Info from './Mp3Info';
 import ListContainer from './widgets/ListContainer';
 import { Mp3 } from '../type';
-import { pathToFolderImageFromPath, scrollToAnchor, upperFirstLetter } from '../tools';
+import { pathToFolderImageFromPath, scrollToAnchor } from '../tools';
 import useMediaQueries from '../hooks/useMediaQueries';
 import { useModalPlaylistContext } from '../context/PlaylistContext';
 import Config from '../Config';
