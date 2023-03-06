@@ -9,11 +9,11 @@ const {extractInfoFromPath} = require('./tools/index.js');
 
 
 const instance = axios.create({
-  baseURL: config.elasticUrl,
+  baseURL: config.elastic.url,
   timeout: 15000,
   auth: {
-    username: config.elasticUserName,
-    password: config.elasticPassword
+    username: config.elastic.userName,
+    password: config.elastic.password
   },
   headers: {Accept: "application/json", "Content-Type": "application/json"}
 })
@@ -47,7 +47,7 @@ router.get('/api/test', async function (req, res) {
 
 router.get('/api/getrandommusic', async function (req, res) {
   try {
-    const response = await instance.post(config.elasticIndexUrl, {
+    const response = await instance.post(config.elastic.indexUrl, {
       "size": 15,
       "query": {"function_score": {"query": {"match_all": {}}, "random_score": {}}}
     });
@@ -68,7 +68,7 @@ router.post('/api/getaggs', async function (req, res) {
 
   try {
 
-    const response = await instance.post(config.elasticIndexUrl, {
+    const response = await instance.post(config.elastic.indexUrl, {
       "size": 0,
       query: createQueryFromFilters(filters),
       "aggs": createAggs(filters)
@@ -171,9 +171,7 @@ router.post('/api/search', async function (req, res) {
 
     clj(query)
 
-    const response = await instance.post(config.elasticIndexUrl, query);
-
-    clj(response.data)
+    const response = await instance.post(config.elastic.indexUrl, query);
 
     res.status(200).json({
       artist: response.data?.aggregations?.artist?.names?.buckets.map(e => {return {key: e.key, path: e.path?.buckets?.[0]?.key}}),
@@ -193,7 +191,7 @@ router.post('/api/getmusicof', async function (req, res) {
   const {filters} = req.body;
   console.log("/api/getmusicof", req.body)
   try {
-    const response = await instance.post(config.elasticIndexUrl, {
+    const response = await instance.post(config.elastic.indexUrl, {
       "size": 150,
       query: createQueryFromFilters(filters)
     });
@@ -336,7 +334,7 @@ router.post("/api/erasemusic", async function (req, res) {
         console.log("path exist !");
         fse.unlinkSync(fullpath);
         console.log("file unlinked")
-        const url = `${config.elasticIndexBaseUrl}/_doc/${elasticId}`;
+        const url = `${config.elastic.indexBaseUrl}/_doc/${elasticId}`;
         await instance.delete(url);
         console.log("delete from es")
         res.status(200).end();
