@@ -108,16 +108,17 @@ export default function Mp3Info({ mp3, compact = false, smallText = false, onSea
         <Grid id="boxartistc" item xs={4} sx={classes.flexStart95}>
           <Box id="boxTitle" sx={classes.spaceBetween}>
             <Box id="boxTitle" sx={classes.flexStart95}>
-              {renderArtist()}
+              <br />
+              <Box> {renderArtist()}</Box>
+              <Box> {renderGenre()}</Box>
             </Box>
             {renderDeleteButton()}
           </Box>
-
-          <Box> {renderGenre()}</Box>
         </Grid>
       </Grid>
     );
   }
+
   function renderRating() {
     return (
       <Rating

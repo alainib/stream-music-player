@@ -28,26 +28,25 @@ import Config from '../Config';
 import { Mp3, newMp3 } from '../type';
 import { shuffleArray } from '../tools';
 
-const Widget = styled('div')(({ theme }) => ({
-  padding: 16,
-  paddingTop: 0,
-  borderRadius: '20px',
-  minHeight: 'min(680px,92vw)',
-  width: Config.imageSize,
-  margin: '10px',
-  position: 'relative',
-  zIndex: 1,
-  backgroundColor: 'rgba(250,250,250,0.1)',
-  //backdropFilter: 'blur(140px)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  [theme.breakpoints.down('sm')]: {
-    width: Config.imageSize,
-  },
-}));
-
 const classes = {
+  container: (theme: any) => ({
+    padding: '16px',
+    paddingTop: '0px',
+    borderRadius: '20px',
+    minHeight: 'min(680px,92vw)',
+    width: Config.imageSize,
+    margin: '10px',
+    position: 'relative',
+    zIndex: 1,
+    backgroundColor: 'rgba(250,250,250,0.1)',
+    //backdropFilter: 'blur(140px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    [theme.breakpoints.down('sm')]: {
+      width: Config.imageSize,
+    },
+  }),
   center: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
 };
 
@@ -97,7 +96,7 @@ export function MusicPlayer() {
 
   if (isMobile) {
     return (
-      <Box id="MusicPlayerComponentMobile" sx={{ width: '100%', overflow: 'hidden' }}>
+      <Box id="MusicPlayerComponentMobile" sx={{ width: '100%', overflow: 'hidden', ...classes.center }}>
         <PlayListWithModal
           currentTrack={currentTrack}
           list={list}
@@ -132,7 +131,7 @@ export function MusicPlayer() {
 
   function renderCurrentPlayer() {
     return (
-      <Widget id="Widget">
+      <Box id="container" sx={classes.container}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
           <Grid container direction="row" justifyContent="space-between" alignItems="center">
             <Grid item>
@@ -154,7 +153,7 @@ export function MusicPlayer() {
             <Mp3Info mp3={currentTrack} compact={true} onSearch={onSearch} />
           </Box>
         </Box>
-      </Widget>
+      </Box>
     );
   }
 
