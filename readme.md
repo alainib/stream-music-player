@@ -14,6 +14,7 @@ the stack is composed of 3 parts : Elastic, server & front
 
 Files in server's folder are
 
+
 - `app.js` : the file started by nodeJs, who serve static files & create API also
 - `api.js` : the API queries are listened here and are made here to elasticSearch 
 - `scan_music_folder` : set of various scripts
